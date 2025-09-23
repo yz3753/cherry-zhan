@@ -1,6 +1,6 @@
 * {
-    margin: 1;
-    padding: 1;
+    margin: 16px;;
+    padding: 8px;;
     box-sizing: border-box;
   }
   
@@ -17,15 +17,39 @@
   
   main, header, footer {
     padding: 20px;
-    border: 1px dashed #a1b7df;
     color: #394e73;
+  }
+
+  main{
+    border: 2px dashed #a1b7df;
   }
   
   header,
   footer {
-    height: 20vh;
+    height:auto;
   }
   
   main {
-    height: 60vh;
+    height:auto;
   }
+
+.image-box{
+    display:inline-block;
+    border: 5px solid #394e73;
+    padding: 10px;
+    background-color: #e2e6ed;
+}
+
+.image-box img{
+    max-width:100%;
+    display:flex;
+    border: 3px solid #8194b6;
+}
+
+.image-box figcaption{
+    text-align: center;
+    margin-top: 5px;
+    font-size: x-large; stroke-width: 3px;
+    color: #394e73;
+}
+
