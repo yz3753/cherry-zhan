@@ -1,6 +1,6 @@
 * {
-    margin: 0;
-    padding: 0;
+    margin: 1;
+    padding: 1;
     box-sizing: border-box;
   }
   
@@ -12,13 +12,13 @@
   body {
     font-family: "Roboto", sans-serif;
     min-height: 100vh;
-    background-color: rgb(210, 149, 51);
+    background-color: rgb(194, 209, 230);
   }
   
   main, header, footer {
     padding: 20px;
-    border: 1px solid #000000;
-    color: #141414;
+    border: 1px dashed #a1b7df;
+    color: #394e73;
   }
   
   header,
