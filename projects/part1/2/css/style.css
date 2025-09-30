@@ -4,12 +4,12 @@ body {
   line-height: 1.6;
   margin: 20px;
   background: #fdfdfd;
-  color: #333;
+  color:orange;
 }
 
 h1 {
   font-size: clamp(1.5rem, 4vw, 2.5rem);
-  color: #2a4d69;
+  color: yellow;
 }
 
 p {
@@ -17,7 +17,7 @@ p {
 }
 
 header, footer {
-  background: #e1eaf2;
+  background: orange;
   padding: 10px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -30,7 +30,7 @@ img {
 }
 
 a {
-  color: #2a4d69;
+  color: orange;
   text-decoration: none;
   padding: 2px 4px;
 }
