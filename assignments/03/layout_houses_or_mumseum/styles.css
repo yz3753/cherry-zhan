@@ -85,7 +85,7 @@ header {
   padding: 20px;
   display: flex;
   align-items: center;
-  gap: 20px; /* 按钮和标题之间留空 */
+  gap: 20px;
 }
 
 .back-btn {
@@ -96,13 +96,11 @@ header {
   font-size: 1rem;
   border-radius: 8px;
   cursor: pointer;
-
-  /* 平滑过渡效果 */
   transition: all 0.3s ease;
 }
 
 .back-btn:hover {
   background: #a1b7df;
-  transform: translateX(-5px); /* 鼠标移上去按钮往左微微移动 */
+  transform: translateX(-5px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
