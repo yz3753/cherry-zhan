@@ -53,3 +53,16 @@
     color: #394e73;
 }
 
+.grid-container{
+  display:grid;
+  grid-template-columns: auto;
+  grid-template-rows: auto;
+  grid-gap: 20px 80px;
+}
+
+.item{
+  background-color: #e2e6ed;
+}
+
+
+
