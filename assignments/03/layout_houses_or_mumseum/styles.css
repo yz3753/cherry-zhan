@@ -34,14 +34,12 @@
   }
 
 .image-box{
-    display:inline-block;
+    display:flex;
     border: 5px solid #394e73;
-    padding: 10px;
     background-color: #e2e6ed;
 }
 
 .image-box img{
-    max-width:100%;
     display:flex;
     border: 3px solid #8194b6;
 }
