@@ -12,7 +12,6 @@
   body {
     font-family: "Roboto", sans-serif;
     min-height: 100vh;
-    background-color: rgb(194, 209, 230);
   }
   
   main, header, footer {
@@ -53,7 +52,7 @@
 
 .grid-container{
   display:grid;
-  grid-template-columns: auto;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-template-rows: auto;
   grid-gap: 20px 80px;
 }
@@ -70,6 +69,11 @@
 .item03{
   grid-column-start: 3;
   grid-column-end: 4;
+}
+
+.item04{
+  grid-column-start: 1;
+  grid-column-end: 2;
 }
 
 
