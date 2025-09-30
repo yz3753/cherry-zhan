@@ -64,5 +64,14 @@
   background-color: #e2e6ed;
 }
 
+.item01{
+  grid-column-start: 1;
+  grid-column-end: 2;
+}
+
+.item01{
+  grid-column-start: 3;
+  grid-column-end: 4;
+}
 
 
