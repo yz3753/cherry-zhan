@@ -61,15 +61,14 @@
 }
 
 .item01{
-  grid-column: 2;
   grid-row: 1;
 }
 .item02{
-  grid-row:2
+  grid-row:5
 }
 
 .item03{
-  grid-row:2;
+  grid-row:5;
 }
 
 
