@@ -50,8 +50,8 @@
 
 .grid-container{
   display:grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
+  grid-auto-rows: minmax(100px,auto);
   max-width: 100%;
   gap: 10px;
 }
@@ -65,11 +65,11 @@
   grid-row: 1;
 }
 .item02{
-  grid-row:4
+  grid-row:2
 }
 
 .item03{
-  grid-row:4;
+  grid-row:2;
 }
 
 
