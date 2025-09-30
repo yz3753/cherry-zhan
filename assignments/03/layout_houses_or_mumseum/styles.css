@@ -1,6 +1,4 @@
 * {
-    margin: 16px;;
-    padding: 8px;;
     box-sizing: border-box;
   }
   
@@ -15,7 +13,6 @@
   }
   
   main, header, footer {
-    padding: 20px;
     color: #394e73;
   }
 
