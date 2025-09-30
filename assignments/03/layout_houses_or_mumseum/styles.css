@@ -51,7 +51,9 @@
 .grid-container{
   display:grid;
   grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
   max-width: 100%;
+  gap: 10px;
 }
 
 .item{
@@ -59,24 +61,16 @@
 }
 
 .item01{
-  grid-column-start: 2;
-  grid-column-end: 2;
-  grid-row-start: 5;
-  grid-row-end: 5;
+  grid-column: 2;
+  grid-row: 1;
 }
 .item02{
-  grid-column-start: 1;
-  grid-column-end: 1;
+  grid-row:4
 }
 
 .item03{
-  grid-column-start: 3;
-  grid-column-end: 3;
+  grid-row:4;
 }
 
-.item04{
-  grid-column-start: 2;
-  grid-column-end: 2;
-}
 
 
