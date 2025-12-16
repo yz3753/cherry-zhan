@@ -4,40 +4,41 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ink Character · 战</title>
-
-  <!-- 确保是同目录 -->
-  <link rel="stylesheet" href="./style.css" />
+  <link rel="stylesheet" href="./styles.css" />
 </head>
 
-<body>
+<body data-active="">
   <main class="stage" id="stage">
-    <div class="bgimg"></div>
-    <canvas id="wash"></canvas>
-    <div class="paperOverlay"></div>
+    <!-- Background -->
+    <div class="bgimg" aria-hidden="true"></div>
+    <canvas id="wash" aria-hidden="true"></canvas>
+    <div class="paperOverlay" aria-hidden="true"></div>
 
-    <div class="topline">
+    <!-- Top caption -->
+    <div class="topline" aria-hidden="true">
       <div><b>Ink Study</b> · character <span lang="zh">战</span></div>
-      <div>Hover regions</div>
+      <div>Hover regions · red highlight · others wash out</div>
     </div>
 
-    <section class="center">
-      <svg id="glyph" viewBox="0 0 1000 700" aria-label="Chinese character 战">
+    <!-- Center character (LiShu-style font, region hover via clipPath) -->
+    <section class="center" aria-label="Interactive character">
+      <svg id="glyph" viewBox="0 0 1000 700" role="img" aria-label="Chinese character: 战 (region-hover)">
         <defs>
-          <!-- 轻微水墨边缘 -->
+          <!-- soft ink edge -->
           <filter id="inkEdge" x="-20%" y="-20%" width="140%" height="140%">
             <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="3"/>
             <feDisplacementMap in="SourceGraphic" scale="8"/>
             <feGaussianBlur stdDeviation="0.4"/>
           </filter>
 
-          <!-- 红色水墨 -->
+          <!-- red ink wash for highlight -->
           <radialGradient id="redWash" cx="45%" cy="40%" r="80%">
             <stop offset="0%" stop-color="rgba(220,30,30,.95)"/>
             <stop offset="55%" stop-color="rgba(150,20,20,.70)"/>
             <stop offset="100%" stop-color="rgba(80,0,0,.20)"/>
           </radialGradient>
 
-          <!-- 区域裁剪 -->
+          <!-- region clipPaths (adjust these rectangles if needed) -->
           <clipPath id="clip-left-top">
             <rect x="250" y="120" width="260" height="240" rx="40"/>
           </clipPath>
@@ -51,50 +52,28 @@
           </clipPath>
         </defs>
 
-        <!-- 基础字（整体，淡） -->
-        <text x="500" y="560"
-              text-anchor="middle"
-              class="char base"
-              filter="url(#inkEdge)">
-          战
-        </text>
+        <!-- Base character -->
+        <text x="500" y="560" text-anchor="middle" class="char base" filter="url(#inkEdge)">战</text>
 
-        <!-- 左上：卜 / ⺊ -->
-        <g id="bu" clip-path="url(#clip-left-top)">
-          <text x="500" y="560"
-                text-anchor="middle"
-                class="char highlight"
-                filter="url(#inkEdge)">
-            战
-          </text>
+        <!-- Highlight overlays (same character, clipped by region) -->
+        <g id="bu" class="region" clip-path="url(#clip-left-top)">
+          <text x="500" y="560" text-anchor="middle" class="char highlight" filter="url(#inkEdge)">战</text>
         </g>
 
-        <!-- 左下：口 -->
-        <g id="kou" clip-path="url(#clip-left-bottom)">
-          <text x="500" y="560"
-                text-anchor="middle"
-                class="char highlight"
-                filter="url(#inkEdge)">
-            战
-          </text>
+        <g id="kou" class="region" clip-path="url(#clip-left-bottom)">
+          <text x="500" y="560" text-anchor="middle" class="char highlight" filter="url(#inkEdge)">战</text>
         </g>
 
-        <!-- 右：戈 -->
-        <g id="ge" clip-path="url(#clip-right)">
-          <text x="500" y="560"
-                text-anchor="middle"
-                class="char highlight"
-                filter="url(#inkEdge)">
-            战
-          </text>
+        <g id="ge" class="region" clip-path="url(#clip-right)">
+          <text x="500" y="560" text-anchor="middle" class="char highlight" filter="url(#inkEdge)">战</text>
         </g>
       </svg>
     </section>
 
-    <!-- 浮动解释 -->
-    <div class="callout" id="callout">
+    <!-- Floating callout follows mouse -->
+    <div class="callout" id="callout" aria-live="polite">
       <div class="row">
-        <div class="cn" id="cn">战</div>
+        <div class="cn" id="cn" lang="zh">战</div>
         <div class="meta" id="meta">overview</div>
       </div>
       <div class="desc" id="desc">
@@ -104,6 +83,65 @@
   </main>
 
   <script>
+    // -----------------------------
+    // Subtle animated ink wash overlay (canvas)
+    // -----------------------------
+    const wash = document.getElementById("wash");
+    const wctx = wash.getContext("2d", { alpha: true });
+
+    function resizeWash() {
+      const r = wash.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      wash.width = Math.floor(r.width * dpr);
+      wash.height = Math.floor(r.height * dpr);
+      wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function blot(x, y, r, a) {
+      const g = wctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(0,0,0,${a})`);
+      g.addColorStop(0.6, `rgba(0,0,0,${a * 0.35})`);
+      g.addColorStop(1, `rgba(0,0,0,0)`);
+      wctx.fillStyle = g;
+      wctx.beginPath();
+      wctx.arc(x, y, r, 0, Math.PI * 2);
+      wctx.fill();
+    }
+
+    let t0 = performance.now();
+    function animateWash() {
+      const t = (performance.now() - t0) / 1000;
+      const r = wash.getBoundingClientRect();
+      const W = r.width, H = r.height;
+
+      wctx.clearRect(0, 0, W, H);
+      wctx.globalCompositeOperation = "multiply";
+
+      for (let i = 0; i < 10; i++) {
+        const x = (W * 0.12) + (i / 10) * W * 0.78 + Math.sin(t * 0.25 + i) * 16;
+        const y = H * (0.22 + 0.06 * Math.sin(i * 1.7)) + Math.cos(t * 0.18 + i * 1.2) * 12;
+        blot(x, y, 120 + (i % 4) * 16, 0.018 + (i % 3) * 0.006);
+      }
+
+      requestAnimationFrame(animateWash);
+    }
+
+    window.addEventListener("resize", () => {
+      resizeWash();
+    });
+
+    resizeWash();
+    animateWash();
+
+    // -----------------------------
+    // Region hover + mouse-following callout
+    // -----------------------------
+    const stage = document.getElementById("stage");
+    const callout = document.getElementById("callout");
+    const cn = document.getElementById("cn");
+    const meta = document.getElementById("meta");
+    const desc = document.getElementById("desc");
+
     const regions = {
       bu: {
         cn: "卜",
@@ -122,71 +160,46 @@
       }
     };
 
-    const callout = document.getElementById("callout");
-    const cn = document.getElementById("cn");
-    const meta = document.getElementById("meta");
-    const desc = document.getElementById("desc");
-    const stage = document.getElementById("stage");
+    function positionCallout(e) {
+      const s = stage.getBoundingClientRect();
+      const pad = 16;
+      const offsetX = (e.clientX < s.left + s.width / 2) ? 22 : -22;
+      const offsetY = (e.clientY < s.top + s.height / 2) ? 18 : -18;
 
-    function moveCallout(e){
-      const r = stage.getBoundingClientRect();
-      callout.style.left = `${e.clientX - r.left + 20}px`;
-      callout.style.top  = `${e.clientY - r.top  + 20}px`;
+      let x = e.clientX - s.left + offsetX;
+      let y = e.clientY - s.top + offsetY;
+
+      const w = callout.offsetWidth || 320;
+      const h = callout.offsetHeight || 160;
+
+      x = Math.max(pad, Math.min(x, s.width - w - pad));
+      y = Math.max(pad + 44, Math.min(y, s.height - h - pad));
+
+      callout.style.left = `${x}px`;
+      callout.style.top = `${y}px`;
     }
 
-    Object.keys(regions).forEach(id => {
-      const el = document.getElementById(id);
-
-      el.addEventListener("mouseenter", e => {
-        document.body.dataset.active = id;
-        cn.textContent = regions[id].cn;
-        meta.textContent = regions[id].meta;
-        desc.textContent = regions[id].desc;
-        callout.classList.add("on");
-      });
-
-      el.addEventListener("mousemove", moveCallout);
-
-      el.addEventListener("mouseleave", () => {
-        document.body.dataset.active = "";
+    function setActive(id, e) {
+      document.body.dataset.active = id || "";
+      if (!id) {
         callout.classList.remove("on");
-      });
+        return;
+      }
+      cn.textContent = regions[id].cn;
+      meta.textContent = regions[id].meta;
+      desc.textContent = regions[id].desc;
+      callout.classList.add("on");
+      positionCallout(e);
+    }
+
+    ["bu", "kou", "ge"].forEach((id) => {
+      const el = document.getElementById(id);
+      el.addEventListener("mouseenter", (e) => setActive(id, e));
+      el.addEventListener("mousemove", (e) => positionCallout(e));
+      el.addEventListener("mouseleave", () => setActive("", null));
     });
+
+    document.getElementById("glyph").addEventListener("mouseleave", () => setActive("", null));
   </script>
 </body>
 </html>
-四、你 CSS 里需要 确认有这几条
-在你的 styles.css 里，确保有（或加上）👇
-
-css
-复制代码
-.char{
-  font-family: "LiSu","STLiti","KaiTi","STKaiti","FangSong","SimSun",serif;
-  font-size: 560px;
-  transition: opacity .2s ease, transform .2s ease, fill .2s ease;
-}
-
-/* 默认淡墨 */
-.char.base{
-  fill: rgba(10,10,10,.65);
-}
-
-/* 高光层默认隐藏 */
-.char.highlight{
-  fill: url(#redWash);
-  opacity: 0;
-  transform: scale(1);
-}
-
-/* hover 状态 */
-body[data-active="bu"] #bu .highlight,
-body[data-active="kou"] #kou .highlight,
-body[data-active="ge"] #ge .highlight{
-  opacity: 1;
-  transform: scale(1.08);
-}
-
-/* 非高光区域洗淡 */
-body[data-active]:not([data-active=""]) .base{
-  opacity: .18;
-}
