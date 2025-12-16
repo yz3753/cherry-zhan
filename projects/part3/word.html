@@ -4,26 +4,29 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ink Character · 战</title>
+
   <style>
     :root{
       --paper:#f7f2e7;
       --paper2:#efe6d6;
-      --ink:#0f0f10;
-      --muted: rgba(20,20,20,.58);
-      --card: rgba(255,255,255,.60);
+      --ink:#0b0b0c;
+      --red:#b21f1f;            /* highlight red */
+      --muted: rgba(20,20,20,.60);
+      --card: rgba(255,255,255,.62);
       --stroke: rgba(0,0,0,.10);
     }
+
     *{ box-sizing:border-box; }
     body{
       margin:0;
       min-height:100vh;
       display:grid;
       place-items:center;
-      color:var(--ink);
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial,
-                   "PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei";
       background: linear-gradient(180deg, var(--paper), var(--paper2));
       overflow:hidden;
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial,
+                   "PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei";
     }
 
     .stage{
@@ -33,23 +36,38 @@
       border-radius:32px;
       overflow:hidden;
       box-shadow: 0 28px 70px rgba(0,0,0,.18);
-      background: rgba(255,255,255,.18);
+      background: rgba(255,255,255,.16);
     }
 
-    /* animated ink painting layer */
-    canvas#bg{
+    /* ---- Background image (your ink battlefield) ---- */
+    .bgimg{
+      position:absolute;
+      inset:0;
+      background-image: url("ink-war.jpg"); /* <-- put your image in same folder */
+      background-size: cover;
+      background-position: center;
+      filter: contrast(1.05) saturate(.95);
+      transform: scale(1.02);
+      z-index:0;
+    }
+
+    /* Animated ink wash overlay (subtle movement) */
+    canvas#wash{
       position:absolute;
       inset:0;
       width:100%;
       height:100%;
-      z-index:0;
+      z-index:1;
+      mix-blend-mode:multiply;
+      opacity:.55;
+      pointer-events:none;
     }
 
-    /* rice paper fibers + vignette on top of canvas */
+    /* Paper fibers + vignette */
     .paperOverlay{
       position:absolute;
       inset:0;
-      z-index:1;
+      z-index:2;
       pointer-events:none;
       background:
         radial-gradient(1200px 900px at 20% 20%, rgba(90,70,40,.10), transparent 62%),
@@ -57,7 +75,7 @@
         linear-gradient(0deg, rgba(0,0,0,.03), transparent 22%, rgba(0,0,0,.02) 55%, transparent 85%),
         repeating-linear-gradient(90deg, rgba(40,30,15,.020) 0 1px, transparent 1px 7px),
         repeating-linear-gradient(0deg, rgba(40,30,15,.014) 0 1px, transparent 1px 9px),
-        radial-gradient(closest-side at 50% 50%, transparent 68%, rgba(0,0,0,.10) 100%);
+        radial-gradient(closest-side at 50% 50%, transparent 68%, rgba(0,0,0,.12) 100%);
       mix-blend-mode:multiply;
       opacity:.85;
     }
@@ -68,80 +86,57 @@
       display:flex;
       justify-content:space-between;
       gap:12px;
-      color:var(--muted);
+      color: rgba(255,255,255,.70);
+      text-shadow: 0 2px 16px rgba(0,0,0,.35);
       letter-spacing:.12em;
       font-size:12px;
       text-transform: uppercase;
       user-select:none;
-      z-index:3;
+      z-index:5;
       pointer-events:none;
     }
-    .topline b{
-      color:rgba(0,0,0,.70);
-      letter-spacing:.10em;
-      font-weight:650;
-    }
+    .topline b{ color: rgba(255,255,255,.92); font-weight:650; }
 
     .center{
       position:absolute;
       inset:0;
       display:grid;
       place-items:center;
-      z-index:2;
+      z-index:4;
     }
 
     svg{
-      width:min(760px, 82vw);
+      width:min(820px, 86vw);
       height:auto;
-      max-height: 86vh;
+      max-height: 88vh;
     }
 
+    /* Brushy feel: prefer calligraphy fonts, but we also add rough-edge filters */
     .calligraphy{
-      font-family: "LiSu","STLiti","KaiTi","STKaiti","FangSong","SimSun",serif;
-      font-size: 520px;
+      font-family: "STLiti","LiSu","KaiTi","STKaiti","FangSong","SimSun",serif;
+      font-size: 560px;
       font-weight: 400;
     }
-    .ink-base{
-      fill: rgba(12,12,12,.92);
-      filter: drop-shadow(0 18px 26px rgba(0,0,0,.22));
-      user-select:none;
-    }
 
-    .layer{
-      opacity:0;
-      transition: opacity .14s ease;
-      user-select:none;
-    }
-    .layer text{
-      transform-origin: var(--ox, 500px) var(--oy, 350px);
-      transition: transform .20s ease, opacity .20s ease;
-      opacity: .98;
-    }
-    .layer.on{ opacity: 1; }
-    .layer.on text{ transform: scale(1.055); }
-
-    /* floating callout follows mouse */
+    /* Floating callout follows mouse */
     .callout{
       position:absolute;
       min-width: 260px;
-      max-width: 380px;
+      max-width: 390px;
       padding: 14px 14px 12px;
       border-radius: 18px;
       background: var(--card);
       border: 1px solid var(--stroke);
-      box-shadow: 0 18px 40px rgba(0,0,0,.16);
+      box-shadow: 0 18px 40px rgba(0,0,0,.18);
       backdrop-filter: blur(7px);
-      z-index:4;
+      z-index:6;
       pointer-events:none;
 
       opacity:0;
       transform: translateY(10px);
       transition: opacity .14s ease, transform .14s ease;
     }
-    .callout.on{
-      opacity:1;
-      transform: translateY(0);
-    }
+    .callout.on{ opacity:1; transform: translateY(0); }
     .callout .row{
       display:flex;
       align-items:baseline;
@@ -150,15 +145,15 @@
       margin-bottom: 8px;
     }
     .callout .cn{
-      font-size: 42px;
+      font-size: 46px;
       font-weight: 900;
       line-height: 1;
-      font-family: "LiSu","STLiti","KaiTi","STKaiti","FangSong","SimSun",serif;
+      font-family: "STLiti","LiSu","KaiTi","STKaiti","FangSong","SimSun",serif;
     }
     .callout .meta{
       text-align:right;
       font-size: 12px;
-      color: var(--muted);
+      color: rgba(20,20,20,.62);
       letter-spacing:.06em;
       text-transform: uppercase;
       line-height:1.2;
@@ -171,45 +166,68 @@
 
     @media (max-width: 720px){
       .callout{ min-width: 220px; max-width: 86vw; }
-      svg{ width:min(640px, 92vw); }
-      .calligraphy{ font-size: 440px; }
+      svg{ width:min(690px, 92vw); }
+      .calligraphy{ font-size: 480px; }
     }
   </style>
 </head>
 
 <body>
   <div class="stage" id="stage">
-    <canvas id="bg"></canvas>
+    <div class="bgimg"></div>
+    <canvas id="wash"></canvas>
     <div class="paperOverlay"></div>
 
     <div class="topline">
-      <div><b>Ink Study</b> · battlefield wash (animated)</div>
-      <div>Hover the character · 战</div>
+      <div><b>Ink Study</b> · 战</div>
+      <div>Hover the character</div>
     </div>
 
     <div class="center">
       <svg id="svg" viewBox="0 0 1000 700" role="img" aria-label="Interactive Chinese character: 战">
         <defs>
-          <!-- watery edge -->
-          <filter id="inkWash" x="-20%" y="-20%" width="140%" height="140%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="2" seed="7" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G"/>
-            <feGaussianBlur stdDeviation="0.55" />
+          <!-- Brush edge filter: roughen + feather -->
+          <filter id="brushEdge" x="-25%" y="-25%" width="150%" height="150%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="2" seed="9" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G"/>
+            <feGaussianBlur stdDeviation="0.45" />
           </filter>
 
-          <!-- ink gradients (feel free to tweak colors) -->
-          <radialGradient id="washWarm" cx="42%" cy="35%" r="78%">
-            <stop offset="0%" stop-color="rgba(40,40,40,.92)"/>
-            <stop offset="55%" stop-color="rgba(10,10,10,.58)"/>
-            <stop offset="100%" stop-color="rgba(10,10,10,.18)"/>
-          </radialGradient>
-          <radialGradient id="washCold" cx="58%" cy="40%" r="85%">
-            <stop offset="0%" stop-color="rgba(25,25,25,.90)"/>
-            <stop offset="65%" stop-color="rgba(10,10,10,.52)"/>
-            <stop offset="100%" stop-color="rgba(10,10,10,.16)"/>
+          <!-- Stronger “bloom” for red highlight -->
+          <filter id="redBloom" x="-35%" y="-35%" width="170%" height="170%">
+            <feGaussianBlur stdDeviation="1.1" result="b"/>
+            <feColorMatrix in="b" type="matrix"
+              values="1 0 0 0 0
+                      0 0.25 0 0 0
+                      0 0 0.25 0 0
+                      0 0 0 0.85 0" result="tinted"/>
+            <feMerge>
+              <feMergeNode in="tinted"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <!-- Non-highlight fade mask (radial, center moves with mouse) -->
+          <!-- We animate cx/cy in JS by setting attributes on the gradient -->
+          <radialGradient id="fadeGrad" cx="50%" cy="50%" r="72%">
+            <stop offset="0%"   stop-color="white" stop-opacity="0.15"/>
+            <stop offset="35%"  stop-color="white" stop-opacity="0.08"/>
+            <stop offset="70%"  stop-color="white" stop-opacity="0.03"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0.00"/>
           </radialGradient>
 
-          <!-- organic clip regions (stylized “ink clouds”) -->
+          <mask id="fadeMask">
+            <rect x="0" y="0" width="1000" height="700" fill="url(#fadeGrad)"/>
+          </mask>
+
+          <!-- Ink gradients for highlight -->
+          <radialGradient id="redWash" cx="45%" cy="40%" r="80%">
+            <stop offset="0%" stop-color="rgba(200,35,35,.98)"/>
+            <stop offset="55%" stop-color="rgba(130,18,18,.70)"/>
+            <stop offset="100%" stop-color="rgba(90,0,0,.20)"/>
+          </radialGradient>
+
+          <!-- Organic clip regions (same as before; can refine later with true glyph paths) -->
           <clipPath id="clip-bu">
             <path d="M235,150
                      C280,95 365,85 420,120
@@ -240,255 +258,143 @@
           </clipPath>
         </defs>
 
-        <!-- base -->
-        <text x="500" y="560" text-anchor="middle" class="calligraphy ink-base">战</text>
+        <!-- Base layer group: when hovering, it becomes faint + masked (gradient transparent) -->
+        <g id="baseGroup" mask="url(#fadeMask)">
+          <!-- “brush fill” made by stacking slightly offset copies -->
+          <text x="500" y="575" text-anchor="middle" class="calligraphy"
+                fill="rgba(10,10,10,.45)" filter="url(#brushEdge)">战</text>
+          <text x="501" y="575" text-anchor="middle" class="calligraphy"
+                fill="rgba(10,10,10,.38)" filter="url(#brushEdge)">战</text>
+          <text x="499" y="576" text-anchor="middle" class="calligraphy"
+                fill="rgba(10,10,10,.36)" filter="url(#brushEdge)">战</text>
 
-        <!-- overlays -->
-        <g id="layer-bu" class="layer" clip-path="url(#clip-bu)">
-          <text x="500" y="560" text-anchor="middle" class="calligraphy"
-                style="--ox: 360px; --oy: 230px; fill:url(#washWarm); filter:url(#inkWash);">战</text>
+          <!-- main ink -->
+          <text x="500" y="575" text-anchor="middle" class="calligraphy"
+                fill="rgba(10,10,10,.78)" filter="url(#brushEdge)">战</text>
         </g>
 
-        <g id="layer-kou" class="layer" clip-path="url(#clip-kou)">
-          <text x="500" y="560" text-anchor="middle" class="calligraphy"
-                style="--ox: 360px; --oy: 520px; fill:url(#washCold); filter:url(#inkWash);">战</text>
+        <!-- Red highlight overlays (clipped) -->
+        <g id="layer-bu" opacity="0" clip-path="url(#clip-bu)">
+          <text x="500" y="575" text-anchor="middle" class="calligraphy"
+                fill="url(#redWash)" filter="url(#redBloom)"
+                style="transform-origin: 360px 230px; transform: scale(1);">战</text>
         </g>
 
-        <g id="layer-ge" class="layer" clip-path="url(#clip-ge)">
-          <text x="500" y="560" text-anchor="middle" class="calligraphy"
-                style="--ox: 690px; --oy: 410px; fill:url(#washWarm); filter:url(#inkWash);">战</text>
+        <g id="layer-kou" opacity="0" clip-path="url(#clip-kou)">
+          <text x="500" y="575" text-anchor="middle" class="calligraphy"
+                fill="url(#redWash)" filter="url(#redBloom)"
+                style="transform-origin: 360px 520px; transform: scale(1);">战</text>
+        </g>
+
+        <g id="layer-ge" opacity="0" clip-path="url(#clip-ge)">
+          <text x="500" y="575" text-anchor="middle" class="calligraphy"
+                fill="url(#redWash)" filter="url(#redBloom)"
+                style="transform-origin: 690px 410px; transform: scale(1);">战</text>
         </g>
       </svg>
     </div>
 
-    <!-- mouse-following callout -->
     <div class="callout" id="callout" aria-live="polite">
       <div class="row">
         <div class="cn" id="cn">战</div>
         <div class="meta" id="meta">overview</div>
       </div>
       <div class="desc" id="desc">
-        Move across the character to reveal components. Chinese appears only for the character/parts.
+        Hover different areas to reveal components. Chinese appears only for the character/parts.
       </div>
     </div>
   </div>
 
   <script>
-    // -----------------------------
-    // 1) Background: animated ink battlefield painting (canvas)
-    // -----------------------------
-    const canvas = document.getElementById("bg");
-    const ctx = canvas.getContext("2d", { alpha: true });
+    // ----------------------------------------------------
+    // A) Subtle animated ink wash on top of the background image
+    // ----------------------------------------------------
+    const wash = document.getElementById("wash");
+    const wctx = wash.getContext("2d", { alpha:true });
 
-    function resizeCanvas(){
-      const r = canvas.getBoundingClientRect();
+    function resizeWash(){
+      const r = wash.getBoundingClientRect();
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width = Math.floor(r.width * dpr);
-      canvas.height = Math.floor(r.height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      wash.width = Math.floor(r.width * dpr);
+      wash.height = Math.floor(r.height * dpr);
+      wctx.setTransform(dpr,0,0,dpr,0,0);
     }
 
-    // lightweight smooth noise
-    function hash2(x, y){
-      let n = x * 374761393 + y * 668265263;
-      n = (n ^ (n >> 13)) * 1274126177;
-      return ((n ^ (n >> 16)) >>> 0) / 4294967295;
+    function hash2(x,y){
+      let n = x*374761393 + y*668265263;
+      n = (n ^ (n>>13)) * 1274126177;
+      return ((n ^ (n>>16))>>>0) / 4294967295;
     }
-    function lerp(a,b,t){ return a + (b-a)*t; }
-    function smoothstep(t){ return t*t*(3-2*t); }
-    function valueNoise(x, y){
-      const x0 = Math.floor(x), y0 = Math.floor(y);
-      const xf = x - x0, yf = y - y0;
-      const r00 = hash2(x0, y0);
-      const r10 = hash2(x0+1, y0);
-      const r01 = hash2(x0, y0+1);
-      const r11 = hash2(x0+1, y0+1);
-      const u = smoothstep(xf), v = smoothstep(yf);
-      return lerp(lerp(r00, r10, u), lerp(r01, r11, u), v);
+    const lerp=(a,b,t)=>a+(b-a)*t;
+    const smooth=t=>t*t*(3-2*t);
+    function noise(x,y){
+      const x0=Math.floor(x), y0=Math.floor(y);
+      const xf=x-x0, yf=y-y0;
+      const r00=hash2(x0,y0), r10=hash2(x0+1,y0), r01=hash2(x0,y0+1), r11=hash2(x0+1,y0+1);
+      const u=smooth(xf), v=smooth(yf);
+      return lerp(lerp(r00,r10,u), lerp(r01,r11,u), v);
     }
-    function fbm(x, y){
-      let sum = 0, amp = 0.55, freq = 0.010;
+    function fbm(x,y){
+      let s=0, a=0.55, f=0.010;
       for(let i=0;i<4;i++){
-        sum += amp * valueNoise(x*freq, y*freq);
-        freq *= 2.05;
-        amp *= 0.55;
+        s += a*noise(x*f, y*f);
+        f *= 2.05; a *= 0.55;
       }
-      return sum;
+      return s;
     }
-
-    function inkBlot(x, y, r, a){
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    function blot(x,y,r,a){
+      const g=wctx.createRadialGradient(x,y,0,x,y,r);
       g.addColorStop(0, `rgba(0,0,0,${a})`);
-      g.addColorStop(0.55, `rgba(0,0,0,${a*0.45})`);
+      g.addColorStop(0.6, `rgba(0,0,0,${a*0.35})`);
       g.addColorStop(1, `rgba(0,0,0,0)`);
-      ctx.fillStyle = g;
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, Math.PI*2);
-      ctx.fill();
+      wctx.fillStyle=g;
+      wctx.beginPath(); wctx.arc(x,y,r,0,Math.PI*2); wctx.fill();
     }
 
-    function drawMountains(w, h, t){
-      // distant ridge
-      ctx.save();
-      ctx.globalCompositeOperation = "multiply";
-      ctx.fillStyle = "rgba(0,0,0,0.08)";
-      ctx.beginPath();
-      ctx.moveTo(0, h*0.52);
-      for(let x=0;x<=w;x+=20){
-        const n = fbm(x + t*18, 30);
-        const y = h*0.44 + n * 120;
-        ctx.lineTo(x, y);
-      }
-      ctx.lineTo(w, h);
-      ctx.lineTo(0, h);
-      ctx.closePath();
-      ctx.fill();
+    let t0=performance.now();
+    function animateWash(){
+      const t=(performance.now()-t0)/1000;
+      const r=wash.getBoundingClientRect();
+      const W=r.width, H=r.height;
 
-      // mid ridge darker
-      ctx.fillStyle = "rgba(0,0,0,0.12)";
-      ctx.beginPath();
-      ctx.moveTo(0, h*0.62);
-      for(let x=0;x<=w;x+=18){
-        const n = fbm(x + t*26, 90);
-        const y = h*0.56 + n * 140;
-        ctx.lineTo(x, y);
-      }
-      ctx.lineTo(w, h);
-      ctx.lineTo(0, h);
-      ctx.closePath();
-      ctx.fill();
-      ctx.restore();
-    }
+      wctx.clearRect(0,0,W,H);
 
-    function drawSmoke(w, h, t){
-      ctx.save();
-      ctx.globalCompositeOperation = "multiply";
-      for(let i=0;i<22;i++){
-        const x = (w*0.15) + (i/22)*w*0.75 + Math.sin(t*0.35 + i)*16;
-        const y = h*0.35 + Math.cos(t*0.28 + i*1.7)*14;
-        const r = 80 + (i%5)*14;
-        const a = 0.03 + (i%4)*0.008;
-        inkBlot(x, y, r, a);
-      }
-      ctx.restore();
-    }
-
-    function drawBattleSilhouettes(w, h, t){
-      ctx.save();
-      ctx.globalCompositeOperation = "multiply";
-
-      // ground haze
-      ctx.fillStyle = "rgba(0,0,0,0.05)";
-      ctx.fillRect(0, h*0.70, w, h*0.30);
-
-      // tiny “army lines”
-      ctx.strokeStyle = "rgba(0,0,0,0.18)";
-      ctx.lineWidth = 1;
-      for(let row=0; row<4; row++){
-        const y = h*(0.72 + row*0.04) + Math.sin(t*0.6 + row)*2;
-        ctx.beginPath();
-        for(let x=0; x<=w; x+=14){
-          const jitter = (fbm(x + row*200, t*40)*2 - 1) * 2.0;
-          ctx.moveTo(x, y + jitter);
-          ctx.lineTo(x, y + 4 + jitter);
-        }
-        ctx.stroke();
+      // sparse floating ink clouds
+      wctx.globalCompositeOperation="multiply";
+      for(let i=0;i<14;i++){
+        const x = (W*0.10) + (i/14)*W*0.82 + Math.sin(t*0.25+i)*18;
+        const y = H*(0.22 + 0.06*Math.sin(i*1.7)) + Math.cos(t*0.18+i*1.2)*14;
+        blot(x,y, 110 + (i%4)*18, 0.020 + (i%3)*0.006);
       }
 
-      // flags & spears (suggestive, not literal)
-      function flag(x,y,s){
-        ctx.strokeStyle = "rgba(0,0,0,0.22)";
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y - 22*s);
-        ctx.stroke();
-
-        ctx.fillStyle = "rgba(0,0,0,0.18)";
-        ctx.beginPath();
-        ctx.moveTo(x, y - 22*s);
-        ctx.quadraticCurveTo(x + 16*s, y - 20*s, x + 18*s, y - 12*s);
-        ctx.quadraticCurveTo(x + 16*s, y - 8*s, x, y - 10*s);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      const baseY = h*0.68;
-      for(let i=0;i<10;i++){
-        const x = w*(0.18 + i*0.07) + Math.sin(t*0.4 + i)*6;
-        const y = baseY + (i%3)*10 + Math.cos(t*0.3 + i)*2;
-        flag(x,y, 0.9 + (i%4)*0.07);
-      }
-
-      // cavalry hints (simple arcs)
-      ctx.strokeStyle = "rgba(0,0,0,0.16)";
-      ctx.lineWidth = 2;
-      for(let i=0;i<6;i++){
-        const x = w*(0.22 + i*0.12) + Math.sin(t*0.35 + i)*8;
-        const y = h*(0.78 + (i%2)*0.02);
-        ctx.beginPath();
-        ctx.arc(x, y, 12, Math.PI*1.1, Math.PI*1.95);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    }
-
-    function drawInkFlow(w, h, t){
-      // very subtle animated wash across the whole paper
-      ctx.save();
-      ctx.globalCompositeOperation = "multiply";
-      const step = 18;
-      for(let y=0; y<h; y+=step){
-        for(let x=0; x<w; x+=step){
-          const n = fbm(x + t*22, y + t*14);
-          const a = (n - 0.35) * 0.06; // super subtle
-          if(a > 0){
-            ctx.fillStyle = `rgba(0,0,0,${a})`;
-            ctx.fillRect(x, y, step, step);
+      // extremely subtle moving grain
+      const step=22;
+      for(let y=0;y<H;y+=step){
+        for(let x=0;x<W;x+=step){
+          const n=fbm(x+t*22, y+t*14);
+          const a=(n-0.40)*0.05;
+          if(a>0){
+            wctx.fillStyle=`rgba(0,0,0,${a})`;
+            wctx.fillRect(x,y,step,step);
           }
         }
       }
-      ctx.restore();
+
+      requestAnimationFrame(animateWash);
     }
 
-    let start = performance.now();
-    function animate(){
-      const now = performance.now();
-      const t = (now - start) / 1000;
+    window.addEventListener("resize", () => resizeWash());
+    resizeWash();
+    animateWash();
 
-      const r = canvas.getBoundingClientRect();
-      const w = r.width, h = r.height;
-
-      ctx.clearRect(0,0,w,h);
-
-      // base wash
-      ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
-      ctx.fillRect(0,0,w,h);
-      ctx.restore();
-
-      // painting layers
-      drawInkFlow(w,h,t*0.20);
-      drawMountains(w,h,t*0.22);
-      drawSmoke(w,h,t*0.26);
-      drawBattleSilhouettes(w,h,t*0.30);
-
-      requestAnimationFrame(animate);
-    }
-
-    window.addEventListener("resize", () => {
-      resizeCanvas();
-    });
-
-    resizeCanvas();
-    animate();
-
-    // -----------------------------
-    // 2) Foreground interaction: hover parts + mouse-following callout
-    // -----------------------------
+    // ----------------------------------------------------
+    // B) Interaction: strong red highlight + base fades out (gradient transparent)
+    // ----------------------------------------------------
     const stage = document.getElementById("stage");
     const svg = document.getElementById("svg");
+
+    const baseGroup = document.getElementById("baseGroup");
+    const fadeGrad = svg.querySelector("#fadeGrad"); // radialGradient element
 
     const layer = {
       bu: document.getElementById("layer-bu"),
@@ -506,36 +412,34 @@
         cn: "战",
         meta: "overview",
         desc:
-          "This page pairs an animated ink battlefield with a structural reading of 战. " +
           "Hover different areas to reveal components: left 占 (卜/⺊ + 口) and right 戈. " +
-          "Chinese appears only for the character and its parts."
+          "Highlight turns red; the rest washes out into transparency."
       },
       bu: {
         cn: "卜",
         meta: "left-top component (within 占)",
-        desc:
-          "卜/⺊ appears historically in contexts related to divination or indication. " +
-          "Here it stands for the left-top structural component of 战 (as part of 占)."
+        desc: "卜/⺊ appears historically in contexts related to divination or indication; here it marks the left-top structure in 战 (as part of 占)."
       },
       kou: {
         cn: "口",
         meta: "left-bottom component (within 占)",
-        desc:
-          "口 often relates to mouth/speech or an enclosure-like form. " +
-          "Here it stands for the left-bottom structural component of 战 (as part of 占)."
+        desc: "口 often relates to mouth/speech or an enclosure-like form; here it marks the left-bottom structure in 战 (as part of 占)."
       },
       ge: {
         cn: "戈",
         meta: "right component (weapon / conflict cue)",
-        desc:
-          "戈 is a weapon component and commonly signals meanings tied to conflict or force. " +
-          "In 战, it forms the right-side structure and acts as a strong semantic clue."
+        desc: "戈 is a weapon component and signals conflict/force; in 战 it forms the right-side structure and is a strong semantic cue."
       }
     };
 
     function clearLayers(){
-      Object.values(layer).forEach(g => g.classList.remove("on"));
+      Object.values(layer).forEach(g => {
+        g.style.opacity = "0";
+        const txt = g.querySelector("text");
+        txt.style.transform = "scale(1)";
+      });
     }
+
     function setState(key){
       const d = DATA[key] || DATA.idle;
       cn.textContent = d.cn;
@@ -544,8 +448,10 @@
 
       if(key === "idle"){
         callout.classList.remove("on");
+        baseGroup.style.opacity = "1";
       }else{
         callout.classList.add("on");
+        baseGroup.style.opacity = "1"; // still shown but masked; opacity stays, mask handles fade
       }
     }
 
@@ -557,11 +463,9 @@
     }
 
     function regionFromPercent(p){
-      const inside = (p.x > 0.18 && p.x < 0.84 && p.y > 0.12 && p.y < 0.92);
+      const inside = (p.x > 0.16 && p.x < 0.86 && p.y > 0.10 && p.y < 0.94);
       if(!inside) return "idle";
-      if(p.x < 0.49){
-        return (p.y < 0.52) ? "bu" : "kou";
-      }
+      if(p.x < 0.49) return (p.y < 0.52) ? "bu" : "kou";
       return "ge";
     }
 
@@ -579,17 +483,28 @@
       const h = callout.offsetHeight || 160;
 
       x = Math.max(pad, Math.min(x, s.width - w - pad));
-      y = Math.max(pad + 44, Math.min(y, s.height - h - pad)); // avoid top caption
-
+      y = Math.max(pad + 44, Math.min(y, s.height - h - pad));
       callout.style.left = `${x}px`;
       callout.style.top  = `${y}px`;
     }
 
-    let last = "idle";
+    function moveFadeCenterToPointer(evt){
+      // move radialGradient center (cx/cy) in % so non-highlight fades around the cursor area
+      const r = svg.getBoundingClientRect();
+      const px = (evt.clientX - r.left) / r.width;
+      const py = (evt.clientY - r.top) / r.height;
+      const cx = Math.round(Math.min(Math.max(px, 0), 1) * 100);
+      const cy = Math.round(Math.min(Math.max(py, 0), 1) * 100);
+      fadeGrad.setAttribute("cx", `${cx}%`);
+      fadeGrad.setAttribute("cy", `${cy}%`);
+    }
+
+    let last="idle";
     setState("idle");
 
     svg.addEventListener("pointermove", (evt) => {
       positionCallout(evt);
+      moveFadeCenterToPointer(evt);
 
       const p = getSvgPercent(evt);
       const key = regionFromPercent(p);
@@ -597,7 +512,11 @@
 
       clearLayers();
       if(key !== "idle"){
-        layer[key].classList.add("on");
+        // show & scale highlight strongly
+        const g = layer[key];
+        g.style.opacity = "1";
+        const txt = g.querySelector("text");
+        txt.style.transform = "scale(1.10)";  // stronger than before
         setState(key);
       }else{
         setState("idle");
@@ -608,7 +527,7 @@
     svg.addEventListener("pointerleave", () => {
       clearLayers();
       setState("idle");
-      last = "idle";
+      last="idle";
     });
   </script>
 </body>
