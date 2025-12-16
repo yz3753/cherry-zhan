@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>汉字偏旁交互 · 战</title>
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --card:#0f1621;
+      --text:#e9eef7;
+      --muted:#9aa7bd;
+      --stroke:rgba(255,255,255,.14);
+      --glow:rgba(255,255,255,.10);
+      --accent:rgba(120,200,255,.22);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background: radial-gradient(1200px 700px at 50% 35%, rgba(90,120,255,.12), transparent 55%),
+                  radial-gradient(900px 600px at 30% 70%, rgba(120,200,255,.10), transparent 60%),
+                  var(--bg);
+      color:var(--text);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC",
+                   "Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Microsoft YaHei", Arial;
+    }
+    .wrap{
+      width:min(1100px, 92vw);
+      display:grid;
+      grid-template-columns: 1.25fr .9fr;
+      gap:18px;
+      align-items:stretch;
+    }
+    .stage, .panel{
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      overflow:hidden;
+    }
+    .stage{
+      position:relative;
+      min-height:520px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .hint{
+      position:absolute;
+      top:14px; left:14px; right:14px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:var(--muted);
+      font-size:13px;
+      letter-spacing:.2px;
+    }
+    .hint code{
+      padding:.15rem .45rem;
+      border:1px solid var(--stroke);
+      border-radius:999px;
+      background:rgba(0,0,0,.18);
+      color:rgba(255,255,255,.8);
+    }
+
+    /* SVG 字展示 */
+    svg{
+      width:100%;
+      height:100%;
+      max-height:620px;
+    }
+    .glyph{
+      font-size: 360px;
+      font-weight: 800;
+      fill: rgba(255,255,255,.92);
+      paint-order: stroke;
+      stroke: rgba(255,255,255,.08);
+      stroke-width: 6px;
+      filter: drop-shadow(0 18px 25px rgba(0,0,0,.45));
+      user-select:none;
+    }
+    .overlay{
+      fill: var(--accent);
+      opacity: 0;
+      transition: opacity .12s ease;
+    }
+    .overlay.on{ opacity: 1; }
+
+    .panel{
+      padding:18px 18px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .title{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      gap:10px;
+      padding-bottom:10px;
+      border-bottom:1px solid var(--stroke);
+    }
+    .title h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.3px;
+    }
+    .badge{
+      font-size:12px;
+      color:rgba(255,255,255,.8);
+      border:1px solid var(--stroke);
+      background:rgba(0,0,0,.18);
+      padding:.2rem .55rem;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+    .card{
+      border:1px solid var(--stroke);
+      border-radius:14px;
+      background: rgba(0,0,0,.18);
+      padding:14px;
+    }
+    .big{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .char{
+      font-size:44px;
+      font-weight:800;
+      line-height:1;
+      letter-spacing:.5px;
+    }
+    .meta{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.5;
+      text-align:right;
+    }
+    .desc{
+      margin-top:10px;
+      color:rgba(255,255,255,.86);
+      line-height:1.7;
+      font-size:14px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .kv{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      color:rgba(255,255,255,.85);
+      font-size:13px;
+      padding:10px 12px;
+      border:1px solid var(--stroke);
+      border-radius:12px;
+      background:rgba(255,255,255,.03);
+    }
+    .kv span:first-child{ color:var(--muted); }
+    .footer{
+      margin-top:auto;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding-top:10px;
+      border-top:1px solid var(--stroke);
+    }
+
+    @media (max-width: 880px){
+      .wrap{ grid-template-columns: 1fr; }
+      .stage{ min-height:460px; }
+      .glyph{ font-size: 320px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="stage">
+      <div class="hint">
+        <div>把鼠标移到字上：<code>左上</code> / <code>左下</code> / <code>右侧</code></div>
+        <div id="pos">x: --% · y: --%</div>
+      </div>
+
+      <!-- 交互区：用 SVG text 显示 “战”，并用“透明分区矩形”做命中 -->
+      <svg id="svg" viewBox="0 0 1000 700" role="img" aria-label="汉字 战 的交互展示">
+        <!-- 字本体 -->
+        <text x="500" y="520" text-anchor="middle" class="glyph">战</text>
+
+        <!-- 分区高亮：默认透明，JS 根据鼠标区域切换 -->
+        <!-- 左上：卜（⺊） -->
+        <rect id="hl-bu" class="overlay" x="260" y="130" width="230" height="230" rx="18"></rect>
+        <!-- 左下：口 -->
+        <rect id="hl-kou" class="overlay" x="260" y="360" width="230" height="230" rx="18"></rect>
+        <!-- 右侧：戈 -->
+        <rect id="hl-ge" class="overlay" x="490" y="150" width="300" height="440" rx="18"></rect>
+
+        <!-- 透明捕获层（可选；这里直接用整个 SVG 监听即可） -->
+      </svg>
+    </div>
+
+    <aside class="panel">
+      <div class="title">
+        <h1>汉字偏旁交互介绍</h1>
+        <div class="badge">Character: 战</div>
+      </div>
+
+      <div class="card" id="infoCard">
+        <div class="big">
+          <div class="char" id="partChar">战</div>
+          <div class="meta" id="partMeta">把鼠标移到大字上<br/>看不同部件解释</div>
+        </div>
+        <div class="desc" id="partDesc">
+          “战”常与战争、战斗相关。它的结构可以粗分为左侧“占”（可再拆为“卜/⺊ + 口”）与右侧“戈”。
+          本页面先用简单分区来做交互：左上=卜，左下=口，右侧=戈。
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="kv"><span>当前区域</span><span id="partName">—</span></div>
+        <div class="kv"><span>功能提示</span><span id="partHint">移动鼠标探索结构</span></div>
+      </div>
+
+      <div class="footer">
+        <span>Tip：之后可扩展到笔画级命中</span>
+        <span>v0.1</span>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    const svg = document.getElementById("svg");
+    const pos = document.getElementById("pos");
+
+    const hl = {
+      bu: document.getElementById("hl-bu"),
+      kou: document.getElementById("hl-kou"),
+      ge: document.getElementById("hl-ge"),
+    };
+
+    const partChar = document.getElementById("partChar");
+    const partMeta = document.getElementById("partMeta");
+    const partDesc = document.getElementById("partDesc");
+    const partName = document.getElementById("partName");
+    const partHint = document.getElementById("partHint");
+
+    // 三块解释（你之后可以换成更严谨的字源/构形说明）
+    const DATA = {
+      bu: {
+        name: "左上：卜（⺊）",
+        char: "卜",
+        meta: "部件（形旁/构件）",
+        desc: "“卜/⺊”在很多字里与占卜、判断、指示有关。在“占”中它是上部构件。这里用它代表“战”的左上结构。",
+        hint: "你现在指向左上的构件区域"
+      },
+      kou: {
+        name: "左下：口",
+        char: "口",
+        meta: "部件（形旁/构件）",
+        desc: "“口”常与说话、发声、口部动作或“口形”相关。在“占”中它是下部构件。这里用它代表“战”的左下结构。",
+        hint: "你现在指向左下的构件区域"
+      },
+      ge: {
+        name: "右侧：戈（部首）",
+        char: "戈",
+        meta: "部首：戈部（与兵器/武事相关）",
+        desc: "“戈”是古代兵器意象，许多与战争、武力相关的字会出现“戈”。“战”的右侧就是“戈”构件，是理解字义的重要线索之一。",
+        hint: "你现在指向右侧“戈”的区域"
+      },
+      whole: {
+        name: "整体：战",
+        char: "战",
+        meta: "整体含义",
+        desc: "“战”与战斗、战争相关。结构上可粗分为左侧“占”（⺊+口）与右侧“戈”。本交互先用分区帮助你建立“看结构”的直觉。",
+        hint: "在字上移动，看看不同构件"
+      }
+    };
+
+    function clearHL(){
+      Object.values(hl).forEach(el => el.classList.remove("on"));
+    }
+
+    function setInfo(key){
+      const d = DATA[key] || DATA.whole;
+      partChar.textContent = d.char;
+      partMeta.textContent = d.meta;
+      partDesc.textContent = d.desc;
+      partName.textContent = d.name;
+      partHint.textContent = d.hint;
+    }
+
+    // 将鼠标坐标转换为 SVG 视口内的百分比坐标
+    function getSvgPercent(evt){
+      const rect = svg.getBoundingClientRect();
+      const x = (evt.clientX - rect.left) / rect.width;
+      const y = (evt.clientY - rect.top) / rect.height;
+      return { x: Math.min(Math.max(x, 0), 1), y: Math.min(Math.max(y, 0), 1) };
+    }
+
+    function regionFromPercent(p){
+      // 这里是“粗分区”规则（你可以随时调整阈值）
+      // 左侧 0~0.47，右侧 0.47~1
+      // 左侧再分：上 0~0.52，下 0.52~1
+      if (p.x < 0.47){
+        return (p.y < 0.52) ? "bu" : "kou";
+      }
+      return "ge";
+    }
+
+    let lastRegion = null;
+
+    svg.addEventListener("pointermove", (evt) => {
+      const p = getSvgPercent(evt);
+      const xp = Math.round(p.x * 100);
+      const yp = Math.round(p.y * 100);
+      pos.textContent = `x: ${xp}% · y: ${yp}%`;
+
+      // 仅当在“字的大概范围内”时触发（避免靠边空白也触发）
+      // 这个范围是经验值，可根据你字号/布局再调
+      const insideGlyph = (p.x > 0.20 && p.x < 0.82 && p.y > 0.18 && p.y < 0.88);
+
+      if (!insideGlyph){
+        if (lastRegion !== "whole"){
+          clearHL();
+          setInfo("whole");
+          lastRegion = "whole";
+        }
+        return;
+      }
+
+      const r = regionFromPercent(p);
+      if (r === lastRegion) return;
+
+      clearHL();
+      hl[r].classList.add("on");
+      setInfo(r);
+      lastRegion = r;
+    });
+
+    svg.addEventListener("pointerleave", () => {
+      clearHL();
+      setInfo("whole");
+      lastRegion = "whole";
+      pos.textContent = `x: --% · y: --%`;
+    });
+
+    // 初始状态
+    setInfo("whole");
+  </script>
+</body>
+</html>
