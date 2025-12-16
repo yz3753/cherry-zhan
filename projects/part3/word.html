@@ -4,146 +4,187 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ink Character · 战</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-  <div class="stage" id="stage">
-    <div class="bgimg"></div>
-    <canvas id="wash"></canvas>
-    <div class="paperOverlay"></div>
+  <main class="stage" id="stage">
+    <div class="bgimg" aria-hidden="true"></div>
+    <canvas id="wash" aria-hidden="true"></canvas>
+    <div class="paperOverlay" aria-hidden="true"></div>
 
-    <div class="topline">
-      <div><b>Ink Study</b> · 战</div>
-      <div>Hover the character</div>
+    <div class="topline" aria-hidden="true">
+      <div><b>Ink Study</b> · character <span lang="zh">战</span></div>
+      <div>Hover strokes · red highlight · others wash out</div>
     </div>
 
-    <div class="center">
-      <svg id="svg" viewBox="0 0 1000 700" role="img" aria-label="Interactive Chinese character: 战">
+    <section class="center" aria-label="Interactive character">
+      <!--
+        Brush-style SVG strokes (each is a path = true hover hit-test)
+        Components mapping:
+          - left 占 : strokes tagged as data-part="卜/⺊" or "口"
+          - right 戈 : strokes tagged as data-part="戈"
+      -->
+      <svg id="glyph" viewBox="0 0 1000 700" role="img" aria-label="Chinese character: 战 (stroke-hover)">
         <defs>
-          <!-- Brush edge filter: roughen + feather -->
+          <!-- Paper-aware brush edge -->
           <filter id="brushEdge" x="-25%" y="-25%" width="150%" height="150%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="2" seed="9" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="14" xChannelSelector="R" yChannelSelector="G"/>
-            <feGaussianBlur stdDeviation="0.45" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="9" result="noise"/>
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G"/>
+            <feGaussianBlur stdDeviation="0.35" />
           </filter>
 
-          <!-- Stronger “bloom” for red highlight -->
+          <!-- Red bloom (strong highlight) -->
           <filter id="redBloom" x="-35%" y="-35%" width="170%" height="170%">
             <feGaussianBlur stdDeviation="1.1" result="b"/>
             <feColorMatrix in="b" type="matrix"
               values="1 0 0 0 0
                       0 0.25 0 0 0
                       0 0 0.25 0 0
-                      0 0 0 0.85 0" result="tinted"/>
+                      0 0 0 0.90 0" result="tinted"/>
             <feMerge>
               <feMergeNode in="tinted"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
 
-          <!-- Non-highlight fade mask (radial, center moves with mouse) -->
-          <!-- We animate cx/cy in JS by setting attributes on the gradient -->
-          <radialGradient id="fadeGrad" cx="50%" cy="50%" r="72%">
-            <stop offset="0%"   stop-color="white" stop-opacity="0.15"/>
-            <stop offset="35%"  stop-color="white" stop-opacity="0.08"/>
-            <stop offset="70%"  stop-color="white" stop-opacity="0.03"/>
-            <stop offset="100%" stop-color="white" stop-opacity="0.00"/>
+          <!-- Highlight ink wash gradient -->
+          <radialGradient id="redWash" cx="45%" cy="40%" r="85%">
+            <stop offset="0%" stop-color="rgba(220,35,35,.98)"/>
+            <stop offset="58%" stop-color="rgba(140,18,18,.72)"/>
+            <stop offset="100%" stop-color="rgba(80,0,0,.18)"/>
           </radialGradient>
 
-          <mask id="fadeMask">
-            <rect x="0" y="0" width="1000" height="700" fill="url(#fadeGrad)"/>
-          </mask>
-
-          <!-- Ink gradients for highlight -->
-          <radialGradient id="redWash" cx="45%" cy="40%" r="80%">
-            <stop offset="0%" stop-color="rgba(200,35,35,.98)"/>
-            <stop offset="55%" stop-color="rgba(130,18,18,.70)"/>
-            <stop offset="100%" stop-color="rgba(90,0,0,.20)"/>
-          </radialGradient>
-
-          <!-- Organic clip regions (same as before; can refine later with true glyph paths) -->
-          <clipPath id="clip-bu">
-            <path d="M235,150
-                     C280,95 365,85 420,120
-                     C450,92 520,98 545,150
-                     C595,180 585,255 535,275
-                     C520,335 440,350 395,320
-                     C330,345 255,300 245,245
-                     C210,220 205,175 235,150Z"/>
-          </clipPath>
-
-          <clipPath id="clip-kou">
-            <path d="M245,385
-                     C285,340 365,335 415,365
-                     C455,340 525,360 540,410
-                     C595,450 575,545 515,560
-                     C495,625 415,635 375,600
-                     C315,625 250,590 245,530
-                     C210,500 205,420 245,385Z"/>
-          </clipPath>
-
-          <clipPath id="clip-ge">
-            <path d="M520,165
-                     C595,125 720,145 770,215
-                     C835,255 835,355 790,395
-                     C830,460 805,575 720,595
-                     C665,640 560,620 535,545
-                     C485,520 485,210 520,165Z"/>
-          </clipPath>
+          <!-- Fade wash for non-highlight strokes (transparent gradient) -->
+          <linearGradient id="fadeInk" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="rgba(10,10,10,.18)"/>
+            <stop offset="55%" stop-color="rgba(10,10,10,.10)"/>
+            <stop offset="100%" stop-color="rgba(10,10,10,0)"/>
+          </linearGradient>
         </defs>
 
-        <!-- Base layer group: when hovering, it becomes faint + masked (gradient transparent) -->
-        <g id="baseGroup" mask="url(#fadeMask)">
-          <!-- “brush fill” made by stacking slightly offset copies -->
-          <text x="500" y="575" text-anchor="middle" class="calligraphy"
-                fill="rgba(10,10,10,.45)" filter="url(#brushEdge)">战</text>
-          <text x="501" y="575" text-anchor="middle" class="calligraphy"
-                fill="rgba(10,10,10,.38)" filter="url(#brushEdge)">战</text>
-          <text x="499" y="576" text-anchor="middle" class="calligraphy"
-                fill="rgba(10,10,10,.36)" filter="url(#brushEdge)">战</text>
+        <!-- Group of strokes -->
+        <g id="strokes" filter="url(#brushEdge)">
+          <!-- Left: 占 (approx strokes) -->
+          <!-- Stroke 1: ⺊ dot -->
+          <path class="stroke" data-stroke="1" data-part="卜/⺊" data-label="⺊ (top-left)"
+            d="M300,155
+               C290,170 288,190 303,205
+               C320,222 345,212 348,192
+               C351,172 332,150 314,148
+               C307,147 303,150 300,155Z"/>
 
-          <!-- main ink -->
-          <text x="500" y="575" text-anchor="middle" class="calligraphy"
-                fill="rgba(10,10,10,.78)" filter="url(#brushEdge)">战</text>
-        </g>
+          <!-- Stroke 2: ⺊ vertical -->
+          <path class="stroke" data-stroke="2" data-part="卜/⺊" data-label="⺊ (vertical)"
+            d="M345,180
+               C336,205 338,232 340,260
+               C342,288 338,330 352,350
+               C368,372 395,360 392,334
+               C388,300 380,250 377,214
+               C375,190 356,168 345,180Z"/>
 
-        <!-- Red highlight overlays (clipped) -->
-        <g id="layer-bu" opacity="0" clip-path="url(#clip-bu)">
-          <text x="500" y="575" text-anchor="middle" class="calligraphy"
-                fill="url(#redWash)" filter="url(#redBloom)"
-                style="transform-origin: 360px 230px; transform: scale(1);">战</text>
-        </g>
+          <!-- Stroke 3: ⺊ slant/edge -->
+          <path class="stroke" data-stroke="3" data-part="卜/⺊" data-label="⺊ (edge)"
+            d="M392,250
+               C412,240 435,238 455,250
+               C475,262 474,284 456,292
+               C438,300 410,304 392,295
+               C372,285 374,257 392,250Z"/>
 
-        <g id="layer-kou" opacity="0" clip-path="url(#clip-kou)">
-          <text x="500" y="575" text-anchor="middle" class="calligraphy"
-                fill="url(#redWash)" filter="url(#redBloom)"
-                style="transform-origin: 360px 520px; transform: scale(1);">战</text>
-        </g>
+          <!-- 口 top -->
+          <path class="stroke" data-stroke="4" data-part="口" data-label="口 (top)"
+            d="M290,380
+               C335,350 415,350 460,380
+               C475,390 470,410 452,412
+               C410,418 340,418 298,412
+               C278,410 272,392 290,380Z"/>
 
-        <g id="layer-ge" opacity="0" clip-path="url(#clip-ge)">
-          <text x="500" y="575" text-anchor="middle" class="calligraphy"
-                fill="url(#redWash)" filter="url(#redBloom)"
-                style="transform-origin: 690px 410px; transform: scale(1);">战</text>
+          <!-- 口 left -->
+          <path class="stroke" data-stroke="5" data-part="口" data-label="口 (left)"
+            d="M288,400
+               C275,438 276,495 290,545
+               C297,570 330,566 327,538
+               C322,495 320,448 330,412
+               C336,390 296,382 288,400Z"/>
+
+          <!-- 口 bottom -->
+          <path class="stroke" data-stroke="6" data-part="口" data-label="口 (bottom)"
+            d="M300,540
+               C340,575 420,575 460,540
+               C476,526 470,507 452,505
+               C410,500 340,500 298,505
+               C278,507 272,526 300,540Z"/>
+
+          <!-- 口 right -->
+          <path class="stroke" data-stroke="7" data-part="口" data-label="口 (right)"
+            d="M456,400
+               C470,438 469,495 456,545
+               C448,572 417,565 420,538
+               C425,495 426,448 416,412
+               C410,390 450,382 456,400Z"/>
+
+          <!-- Right: 戈 (approx strokes) -->
+          <!-- 戈 main vertical -->
+          <path class="stroke" data-stroke="8" data-part="戈" data-label="戈 (main)"
+            d="M650,150
+               C630,175 628,215 632,255
+               C636,300 628,360 648,392
+               C672,430 712,410 706,370
+               C700,328 694,270 692,228
+               C690,188 670,140 650,150Z"/>
+
+          <!-- 戈 horizontal / hook -->
+          <path class="stroke" data-stroke="9" data-part="戈" data-label="戈 (hook)"
+            d="M585,285
+               C630,260 700,260 745,285
+               C768,298 760,320 738,324
+               C690,332 640,332 592,324
+               C570,320 560,300 585,285Z"/>
+
+          <!-- 戈 slash -->
+          <path class="stroke" data-stroke="10" data-part="戈" data-label="戈 (slash)"
+            d="M600,360
+               C620,352 645,360 660,382
+               C690,430 720,480 750,528
+               C765,552 748,575 724,562
+               C675,535 640,490 615,440
+               C600,410 580,372 600,360Z"/>
+
+          <!-- 戈 dot -->
+          <path class="stroke" data-stroke="11" data-part="戈" data-label="戈 (dot)"
+            d="M740,210
+               C730,225 728,245 742,258
+               C758,272 784,262 786,242
+               C788,222 770,202 752,202
+               C747,202 743,205 740,210Z"/>
+
+          <!-- Extra “battle energy” stroke (stylized) -->
+          <path class="stroke" data-stroke="12" data-part="戈" data-label="戈 (tail)"
+            d="M690,430
+               C675,470 665,520 675,565
+               C682,595 720,595 720,560
+               C720,515 730,480 742,448
+               C752,422 700,408 690,430Z"/>
         </g>
       </svg>
-    </div>
+    </section>
 
+    <!-- Mouse-following callout -->
     <div class="callout" id="callout" aria-live="polite">
       <div class="row">
-        <div class="cn" id="cn">战</div>
+        <div class="cn" id="cn" lang="zh">战</div>
         <div class="meta" id="meta">overview</div>
       </div>
       <div class="desc" id="desc">
-        Hover different areas to reveal components. Chinese appears only for the character/parts.
+        Hover strokes to reveal parts. Chinese appears only for the character/parts.
       </div>
     </div>
-  </div>
+  </main>
 
   <script>
-    // ----------------------------------------------------
-    // A) Subtle animated ink wash on top of the background image
-    // ----------------------------------------------------
+    // -----------------------------
+    // Background wash animation (subtle)
+    // -----------------------------
     const wash = document.getElementById("wash");
     const wctx = wash.getContext("2d", { alpha:true });
 
@@ -152,7 +193,7 @@
       const dpr = Math.max(1, window.devicePixelRatio || 1);
       wash.width = Math.floor(r.width * dpr);
       wash.height = Math.floor(r.height * dpr);
-      wctx.setTransform(dpr,0,0,dpr,0,0);
+      wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     function hash2(x,y){
@@ -160,8 +201,8 @@
       n = (n ^ (n>>13)) * 1274126177;
       return ((n ^ (n>>16))>>>0) / 4294967295;
     }
-    const lerp=(a,b,t)=>a+(b-a)*t;
-    const smooth=t=>t*t*(3-2*t);
+    const lerp = (a,b,t)=>a+(b-a)*t;
+    const smooth = t=>t*t*(3-2*t);
     function noise(x,y){
       const x0=Math.floor(x), y0=Math.floor(y);
       const xf=x-x0, yf=y-y0;
@@ -177,39 +218,42 @@
       }
       return s;
     }
+
     function blot(x,y,r,a){
-      const g=wctx.createRadialGradient(x,y,0,x,y,r);
+      const g = wctx.createRadialGradient(x,y,0,x,y,r);
       g.addColorStop(0, `rgba(0,0,0,${a})`);
       g.addColorStop(0.6, `rgba(0,0,0,${a*0.35})`);
       g.addColorStop(1, `rgba(0,0,0,0)`);
-      wctx.fillStyle=g;
-      wctx.beginPath(); wctx.arc(x,y,r,0,Math.PI*2); wctx.fill();
+      wctx.fillStyle = g;
+      wctx.beginPath();
+      wctx.arc(x,y,r,0,Math.PI*2);
+      wctx.fill();
     }
 
-    let t0=performance.now();
+    let t0 = performance.now();
     function animateWash(){
-      const t=(performance.now()-t0)/1000;
-      const r=wash.getBoundingClientRect();
-      const W=r.width, H=r.height;
+      const t = (performance.now()-t0)/1000;
+      const r = wash.getBoundingClientRect();
+      const W = r.width, H = r.height;
 
       wctx.clearRect(0,0,W,H);
+      wctx.globalCompositeOperation = "multiply";
 
-      // sparse floating ink clouds
-      wctx.globalCompositeOperation="multiply";
-      for(let i=0;i<14;i++){
-        const x = (W*0.10) + (i/14)*W*0.82 + Math.sin(t*0.25+i)*18;
+      // soft drifting clouds
+      for(let i=0;i<12;i++){
+        const x = (W*0.12) + (i/12)*W*0.78 + Math.sin(t*0.25+i)*18;
         const y = H*(0.22 + 0.06*Math.sin(i*1.7)) + Math.cos(t*0.18+i*1.2)*14;
-        blot(x,y, 110 + (i%4)*18, 0.020 + (i%3)*0.006);
+        blot(x,y, 120 + (i%4)*18, 0.018 + (i%3)*0.006);
       }
 
-      // extremely subtle moving grain
-      const step=22;
+      // subtle grain
+      const step = 24;
       for(let y=0;y<H;y+=step){
         for(let x=0;x<W;x+=step){
-          const n=fbm(x+t*22, y+t*14);
-          const a=(n-0.40)*0.05;
+          const n = fbm(x+t*22, y+t*14);
+          const a = (n-0.42)*0.05;
           if(a>0){
-            wctx.fillStyle=`rgba(0,0,0,${a})`;
+            wctx.fillStyle = `rgba(0,0,0,${a})`;
             wctx.fillRect(x,y,step,step);
           }
         }
@@ -218,24 +262,16 @@
       requestAnimationFrame(animateWash);
     }
 
-    window.addEventListener("resize", () => resizeWash());
+    window.addEventListener("resize", resizeWash);
     resizeWash();
     animateWash();
 
-    // ----------------------------------------------------
-    // B) Interaction: strong red highlight + base fades out (gradient transparent)
-    // ----------------------------------------------------
+    // -----------------------------
+    // Stroke-precise hover interaction
+    // -----------------------------
     const stage = document.getElementById("stage");
-    const svg = document.getElementById("svg");
-
-    const baseGroup = document.getElementById("baseGroup");
-    const fadeGrad = svg.querySelector("#fadeGrad"); // radialGradient element
-
-    const layer = {
-      bu: document.getElementById("layer-bu"),
-      kou: document.getElementById("layer-kou"),
-      ge: document.getElementById("layer-ge"),
-    };
+    const glyph = document.getElementById("glyph");
+    const strokes = Array.from(document.querySelectorAll(".stroke"));
 
     const callout = document.getElementById("callout");
     const cn = document.getElementById("cn");
@@ -247,61 +283,42 @@
         cn: "战",
         meta: "overview",
         desc:
-          "Hover different areas to reveal components: left 占 (卜/⺊ + 口) and right 戈. " +
-          "Highlight turns red; the rest washes out into transparency."
+          "Hover any stroke to reveal the component. Highlight turns red; all other strokes wash out into transparency. " +
+          "Chinese appears only for the character/parts."
       },
-      bu: {
+      "卜/⺊": {
         cn: "卜",
-        meta: "left-top component (within 占)",
-        desc: "卜/⺊ appears historically in contexts related to divination or indication; here it marks the left-top structure in 战 (as part of 占)."
+        meta: "component (within 占)",
+        desc:
+          "卜/⺊ appears historically in contexts related to divination or indication. Here it marks the upper-left structure of 战 (within 占)."
       },
-      kou: {
+      "口": {
         cn: "口",
-        meta: "left-bottom component (within 占)",
-        desc: "口 often relates to mouth/speech or an enclosure-like form; here it marks the left-bottom structure in 战 (as part of 占)."
+        meta: "component (within 占)",
+        desc:
+          "口 often relates to mouth/speech or an enclosure-like form. Here it marks the lower-left structure of 战 (within 占)."
       },
-      ge: {
+      "戈": {
         cn: "戈",
-        meta: "right component (weapon / conflict cue)",
-        desc: "戈 is a weapon component and signals conflict/force; in 战 it forms the right-side structure and is a strong semantic cue."
+        meta: "weapon / conflict cue",
+        desc:
+          "戈 is a weapon component and often signals conflict or force. In 战 it forms the right-side structure."
       }
     };
 
-    function clearLayers(){
-      Object.values(layer).forEach(g => {
-        g.style.opacity = "0";
-        const txt = g.querySelector("text");
-        txt.style.transform = "scale(1)";
-      });
-    }
-
-    function setState(key){
-      const d = DATA[key] || DATA.idle;
-      cn.textContent = d.cn;
-      meta.textContent = d.meta;
-      desc.textContent = d.desc;
-
-      if(key === "idle"){
+    function setCallout(part, label){
+      if(!part){
+        cn.textContent = DATA.idle.cn;
+        meta.textContent = DATA.idle.meta;
+        desc.textContent = DATA.idle.desc;
         callout.classList.remove("on");
-        baseGroup.style.opacity = "1";
-      }else{
-        callout.classList.add("on");
-        baseGroup.style.opacity = "1"; // still shown but masked; opacity stays, mask handles fade
+        return;
       }
-    }
-
-    function getSvgPercent(evt){
-      const r = svg.getBoundingClientRect();
-      const x = (evt.clientX - r.left) / r.width;
-      const y = (evt.clientY - r.top) / r.height;
-      return { x: Math.min(Math.max(x,0),1), y: Math.min(Math.max(y,0),1) };
-    }
-
-    function regionFromPercent(p){
-      const inside = (p.x > 0.16 && p.x < 0.86 && p.y > 0.10 && p.y < 0.94);
-      if(!inside) return "idle";
-      if(p.x < 0.49) return (p.y < 0.52) ? "bu" : "kou";
-      return "ge";
+      const d = DATA[part] || DATA.idle;
+      cn.textContent = d.cn;
+      meta.textContent = (label ? `${d.meta} · ${label}` : d.meta);
+      desc.textContent = d.desc;
+      callout.classList.add("on");
     }
 
     function positionCallout(evt){
@@ -323,47 +340,42 @@
       callout.style.top  = `${y}px`;
     }
 
-    function moveFadeCenterToPointer(evt){
-      // move radialGradient center (cx/cy) in % so non-highlight fades around the cursor area
-      const r = svg.getBoundingClientRect();
-      const px = (evt.clientX - r.left) / r.width;
-      const py = (evt.clientY - r.top) / r.height;
-      const cx = Math.round(Math.min(Math.max(px, 0), 1) * 100);
-      const cy = Math.round(Math.min(Math.max(py, 0), 1) * 100);
-      fadeGrad.setAttribute("cx", `${cx}%`);
-      fadeGrad.setAttribute("cy", `${cy}%`);
+    function setActiveStroke(activeEl){
+      strokes.forEach(p => {
+        p.classList.remove("active");
+        p.classList.toggle("washed", !!activeEl);
+      });
+      if(activeEl){
+        activeEl.classList.add("active");
+      }
     }
 
-    let last="idle";
-    setState("idle");
-
-    svg.addEventListener("pointermove", (evt) => {
-      positionCallout(evt);
-      moveFadeCenterToPointer(evt);
-
-      const p = getSvgPercent(evt);
-      const key = regionFromPercent(p);
-      if(key === last) return;
-
-      clearLayers();
-      if(key !== "idle"){
-        // show & scale highlight strongly
-        const g = layer[key];
-        g.style.opacity = "1";
-        const txt = g.querySelector("text");
-        txt.style.transform = "scale(1.10)";  // stronger than before
-        setState(key);
-      }else{
-        setState("idle");
-      }
-      last = key;
+    // Event binding (true path hit-testing)
+    strokes.forEach(p => {
+      p.addEventListener("pointerenter", (evt) => {
+        const part = p.dataset.part;
+        const label = p.dataset.label || `stroke ${p.dataset.stroke}`;
+        setActiveStroke(p);
+        setCallout(part, label);
+      });
+      p.addEventListener("pointermove", (evt) => {
+        positionCallout(evt);
+      });
+      p.addEventListener("pointerleave", (evt) => {
+        // revert to idle only if leaving the whole SVG or no other stroke is active
+        setActiveStroke(null);
+        setCallout(null);
+      });
     });
 
-    svg.addEventListener("pointerleave", () => {
-      clearLayers();
-      setState("idle");
-      last="idle";
+    // Also handle pointer leave from SVG
+    glyph.addEventListener("pointerleave", () => {
+      setActiveStroke(null);
+      setCallout(null);
     });
+
+    // Init
+    setCallout(null);
   </script>
 </body>
 </html>
