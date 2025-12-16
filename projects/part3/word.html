@@ -3,356 +3,416 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Chinese Character Explorer · 战</title>
+  <title>Chinese Character · 战</title>
   <style>
     :root{
-      --bg:#0b0f14;
-      --stroke:rgba(255,255,255,.14);
-      --muted:#9aa7bd;
-      --text:#e9eef7;
-      --accent:rgba(120,200,255,.22);
+      --paper:#f6f1e6;
+      --paper2:#efe7d8;
+      --ink:#121212;
+      --muted:#6b645a;
+      --accent:#b21f1f;      /* ink-red */
+      --accent2:#1f4aa8;     /* ink-blue (secondary option) */
+      --shadow: rgba(0,0,0,.18);
     }
-    *{box-sizing:border-box}
+
+    *{ box-sizing:border-box; }
+
     body{
       margin:0;
       min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
+      color:var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "PingFang SC",
+                   "Hiragino Sans GB", "Noto Sans CJK SC", "Microsoft YaHei";
+      /* Xuan paper vibe: subtle fibers + soft stains */
       background:
-        radial-gradient(1200px 700px at 50% 35%, rgba(90,120,255,.12), transparent 55%),
-        radial-gradient(900px 600px at 30% 70%, rgba(120,200,255,.10), transparent 60%),
-        var(--bg);
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "PingFang SC",
-                   "Hiragino Sans GB", "Noto Sans CJK SC", "Noto Sans SC", "Microsoft YaHei", Arial;
+        radial-gradient(1200px 900px at 18% 22%, rgba(90,70,40,.08), transparent 60%),
+        radial-gradient(900px 700px at 82% 74%, rgba(60,80,120,.06), transparent 62%),
+        linear-gradient(0deg, rgba(0,0,0,.03), transparent 22%, rgba(0,0,0,.02) 55%, transparent 85%),
+        repeating-linear-gradient(90deg, rgba(40,30,15,.025) 0 1px, transparent 1px 7px),
+        repeating-linear-gradient(0deg, rgba(40,30,15,.018) 0 1px, transparent 1px 9px),
+        linear-gradient(180deg, var(--paper), var(--paper2));
     }
-    .wrap{
+
+    /* a gentle paper edge vignette */
+    .paper-frame{
       width:min(1100px, 92vw);
-      display:grid;
-      grid-template-columns: 1.25fr .9fr;
-      gap:18px;
-      align-items:stretch;
-    }
-    .stage, .panel{
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      border:1px solid var(--stroke);
-      border-radius:18px;
-      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+      height:min(680px, 88vh);
+      border-radius:28px;
+      position:relative;
       overflow:hidden;
+      box-shadow: 0 28px 70px var(--shadow);
+      background: rgba(255,255,255,.35);
+      backdrop-filter: blur(1px);
     }
+    .paper-frame::before{
+      content:"";
+      position:absolute;
+      inset:-40px;
+      background:
+        radial-gradient(closest-side at 30% 20%, rgba(255,255,255,.65), transparent 60%),
+        radial-gradient(closest-side at 70% 80%, rgba(255,255,255,.45), transparent 65%),
+        radial-gradient(closest-side at 50% 50%, transparent 68%, rgba(0,0,0,.08) 100%);
+      pointer-events:none;
+      mix-blend-mode:multiply;
+      opacity:.75;
+    }
+
+    .layout{
+      position:absolute;
+      inset:0;
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 18px;
+      padding: 34px 34px 28px;
+    }
+
+    /* LEFT: character stage */
     .stage{
       position:relative;
-      min-height:520px;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:18px;
+      overflow:hidden;
+      border-radius:20px;
     }
-    .hint{
+
+    /* subtle “exhibition label” */
+    .label{
       position:absolute;
-      top:14px; left:14px; right:14px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      color:var(--muted);
-      font-size:13px;
-      letter-spacing:.2px;
-    }
-    .hint code{
-      padding:.15rem .45rem;
-      border:1px solid var(--stroke);
-      border-radius:999px;
-      background:rgba(0,0,0,.18);
-      color:rgba(255,255,255,.8);
-    }
-
-    svg{ width:100%; height:100%; max-height:620px; }
-
-    .glyph{
-      font-size: 360px;
-      font-weight: 800;
-      fill: rgba(255,255,255,.92);
-      paint-order: stroke;
-      stroke: rgba(255,255,255,.08);
-      stroke-width: 6px;
-      filter: drop-shadow(0 18px 25px rgba(0,0,0,.45));
+      top: 6px;
+      left: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity:.9;
       user-select:none;
     }
-    .overlay{
-      fill: var(--accent);
-      opacity: 0;
-      transition: opacity .12s ease;
+    .label b{
+      color: rgba(0,0,0,.72);
+      font-weight: 650;
+      letter-spacing: .08em;
     }
-    .overlay.on{ opacity: 1; }
 
-    .panel{
-      padding:18px 18px 16px;
+    /* RIGHT: text appears like a calm caption on paper (not a cold panel) */
+    .caption{
+      position:relative;
+      border-radius:20px;
+      padding: 22px 22px 18px;
+      background: rgba(255,255,255,.38);
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.55);
+      align-self:stretch;
       display:flex;
       flex-direction:column;
-      gap:12px;
+      justify-content:center;
+      gap: 14px;
     }
-    .title{
+    .caption h1{
+      margin:0;
+      font-size: 16px;
+      letter-spacing:.06em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,.70);
+      font-weight: 650;
+    }
+
+    .caption .bigCN{
       display:flex;
       align-items:baseline;
-      justify-content:space-between;
-      gap:10px;
-      padding-bottom:10px;
-      border-bottom:1px solid var(--stroke);
+      gap: 10px;
+      margin-top: 2px;
     }
-    .title h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.3px;
+    .caption .bigCN .cn{
+      font-size: 46px;
+      font-weight: 900;
+      line-height: 1;
     }
-    .badge{
-      font-size:12px;
-      color:rgba(255,255,255,.8);
-      border:1px solid var(--stroke);
-      background:rgba(0,0,0,.18);
-      padding:.2rem .55rem;
-      border-radius:999px;
-      white-space:nowrap;
+    .caption .bigCN .en{
+      color: var(--muted);
+      font-size: 14px;
+      line-height:1.3;
     }
 
-    .card{
-      border:1px solid var(--stroke);
-      border-radius:14px;
-      background: rgba(0,0,0,.18);
-      padding:14px;
-    }
-    .big{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-    }
-    .char{
-      font-size:44px;
-      font-weight:800;
-      line-height:1;
-      letter-spacing:.5px;
-    }
-    .meta{
-      color:var(--muted);
-      font-size:13px;
-      line-height:1.5;
-      text-align:right;
-    }
-    .desc{
-      margin-top:10px;
-      color:rgba(255,255,255,.86);
-      line-height:1.7;
-      font-size:14px;
-    }
-    .row{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap:10px;
-    }
-    .kv{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      color:rgba(255,255,255,.85);
-      font-size:13px;
-      padding:10px 12px;
-      border:1px solid var(--stroke);
-      border-radius:12px;
-      background:rgba(255,255,255,.03);
-    }
-    .kv span:first-child{ color:var(--muted); }
-    .footer{
-      margin-top:auto;
-      color:var(--muted);
-      font-size:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      padding-top:10px;
-      border-top:1px solid var(--stroke);
+    .caption .desc{
+      font-size: 14px;
+      line-height: 1.75;
+      color: rgba(0,0,0,.78);
+      margin-top: 4px;
+      min-height: 7.5em; /* keeps layout stable */
+      transition: opacity .18s ease, transform .18s ease;
     }
 
-    @media (max-width: 880px){
-      .wrap{ grid-template-columns: 1fr; }
-      .stage{ min-height:460px; }
-      .glyph{ font-size: 320px; }
+    .metaRow{
+      display:flex;
+      justify-content:space-between;
+      gap: 12px;
+      color: rgba(0,0,0,.58);
+      font-size: 12px;
+      letter-spacing:.04em;
+      border-top: 1px solid rgba(0,0,0,.08);
+      padding-top: 12px;
+      margin-top: 6px;
+    }
+
+    /* SVG character styling */
+    svg{
+      width:100%;
+      height:100%;
+      max-width: 720px;
+      max-height: 620px;
+    }
+
+    .calligraphy{
+      /* prefer clerical-script-like fonts; fallback to other CJK fonts */
+      font-family: "LiSu", "STLiti", "KaiTi", "STKaiti", "FangSong", "SimSun", serif;
+      font-size: 420px;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    /* Base ink layer */
+    .ink-base{
+      fill: rgba(10,10,10,.92);
+      filter: drop-shadow(0 18px 26px rgba(0,0,0,.22));
+      user-select:none;
+    }
+
+    /* Overlay layers (clipped components) */
+    .layer{
+      opacity: 0;
+      transform-origin: 500px 350px; /* SVG viewBox center-ish */
+      transition: opacity .14s ease;
+      user-select:none;
+    }
+
+    /* each layer animates via transform on its inner text */
+    .layer text{
+      transform-origin: var(--ox, 500px) var(--oy, 350px);
+      transition: transform .18s ease, fill .18s ease, opacity .18s ease;
+      fill: var(--accent);
+      opacity: .92;
+    }
+
+    .layer.on{
+      opacity: 1;
+    }
+    .layer.on text{
+      transform: scale(1.035);
+    }
+
+    /* when not hovering any part: keep clean */
+    .stage.is-idle .layer{
+      opacity: 0;
+    }
+
+    /* small helper note bottom-left */
+    .micro{
+      position:absolute;
+      bottom: 10px;
+      left: 12px;
+      color: rgba(0,0,0,.48);
+      font-size: 12px;
+      user-select:none;
+    }
+
+    @media (max-width: 900px){
+      .layout{ grid-template-columns: 1fr; }
+      .caption{ order:2; }
+      .stage{ min-height: 360px; }
+      svg{ max-height: 520px; }
+      .calligraphy{ font-size: 360px; }
     }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="stage">
-      <div class="hint">
-        <div>Move over the character: <code>left-top</code> / <code>left-bottom</code> / <code>right</code></div>
-        <div id="pos">x: --% · y: --%</div>
-      </div>
+  <div class="paper-frame">
+    <div class="layout">
+      <!-- LEFT: character -->
+      <section class="stage is-idle" id="stage">
+        <div class="label"><b>Hover</b> to read components</div>
+        <div class="micro">Move across the character — the active part will “breathe”.</div>
 
-      <svg id="svg" viewBox="0 0 1000 700" role="img" aria-label="Interactive Chinese character: 战">
-        <!-- Main character -->
-        <text x="500" y="520" text-anchor="middle" class="glyph">战</text>
+        <svg id="svg" viewBox="0 0 1000 700" role="img" aria-label="Interactive Chinese character: 战">
+          <defs>
+            <!-- Coarse clip regions (adjust as needed) -->
+            <clipPath id="clip-bu">
+              <rect x="255" y="120" width="250" height="250" rx="26"></rect>
+            </clipPath>
+            <clipPath id="clip-kou">
+              <rect x="255" y="360" width="250" height="260" rx="26"></rect>
+            </clipPath>
+            <clipPath id="clip-ge">
+              <rect x="500" y="140" width="320" height="470" rx="26"></rect>
+            </clipPath>
+          </defs>
 
-        <!-- Highlight zones (coarse, adjustable) -->
-        <rect id="hl-bu" class="overlay" x="260" y="130" width="230" height="230" rx="18"></rect>
-        <rect id="hl-kou" class="overlay" x="260" y="360" width="230" height="230" rx="18"></rect>
-        <rect id="hl-ge" class="overlay" x="490" y="150" width="300" height="440" rx="18"></rect>
-      </svg>
+          <!-- Base character -->
+          <text x="500" y="540" text-anchor="middle" class="calligraphy ink-base">战</text>
+
+          <!-- Overlay (component emphasis) -->
+          <!-- Left-top: 卜 / ⺊ area -->
+          <g id="layer-bu" class="layer" clip-path="url(#clip-bu)">
+            <text x="500" y="540" text-anchor="middle" class="calligraphy"
+                  style="--ox: 360px; --oy: 240px;">战</text>
+          </g>
+
+          <!-- Left-bottom: 口 area -->
+          <g id="layer-kou" class="layer" clip-path="url(#clip-kou)">
+            <text x="500" y="540" text-anchor="middle" class="calligraphy"
+                  style="--ox: 360px; --oy: 500px;">战</text>
+          </g>
+
+          <!-- Right: 戈 area -->
+          <g id="layer-ge" class="layer" clip-path="url(#clip-ge)">
+            <text x="500" y="540" text-anchor="middle" class="calligraphy"
+                  style="--ox: 670px; --oy: 420px;">战</text>
+          </g>
+        </svg>
+      </section>
+
+      <!-- RIGHT: explanation -->
+      <aside class="caption" aria-live="polite">
+        <h1>Chinese Character Study</h1>
+
+        <div class="bigCN">
+          <div class="cn" id="cnBig">战</div>
+          <div class="en" id="enMeta">Hover different areas to reveal components.</div>
+        </div>
+
+        <div class="desc" id="desc">
+          This page introduces the structure of <span lang="zh">战</span> through a simple hover interaction.
+          The character can be read as left <span lang="zh">占</span> (made of <span lang="zh">卜/⺊</span> + <span lang="zh">口</span>)
+          plus right <span lang="zh">戈</span>. We intentionally keep the interface clean—like a label next to a calligraphy scroll.
+        </div>
+
+        <div class="metaRow">
+          <div>Active area: <span id="active">—</span></div>
+          <div style="text-align:right;">Prototype: v1 (clean paper style)</div>
+        </div>
+      </aside>
     </div>
-
-    <aside class="panel">
-      <div class="title">
-        <h1>Chinese Character Explorer</h1>
-        <div class="badge">Current character: 战</div>
-      </div>
-
-      <div class="card">
-        <div class="big">
-          <div class="char" id="partChar">战</div>
-          <div class="meta" id="partMeta">Hover the large character<br/>to reveal components</div>
-        </div>
-        <div class="desc" id="partDesc">
-          This page demonstrates a simple hover-based breakdown of the character <span lang="zh">战</span>.
-          We use three coarse zones to introduce key components:
-          left-top (<span lang="zh">卜/⺊</span>), left-bottom (<span lang="zh">口</span>), and right (<span lang="zh">戈</span>).
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="kv"><span>Active zone</span><span id="partName">—</span></div>
-        <div class="kv"><span>Interaction</span><span id="partHint">Move your cursor to explore</span></div>
-      </div>
-
-      <div class="footer">
-        <span>Next: upgrade to stroke-level hit-testing (SVG paths)</span>
-        <span>v0.2</span>
-      </div>
-    </aside>
   </div>
 
   <script>
+    const stage = document.getElementById("stage");
     const svg = document.getElementById("svg");
-    const pos = document.getElementById("pos");
 
-    const hl = {
-      bu: document.getElementById("hl-bu"),
-      kou: document.getElementById("hl-kou"),
-      ge: document.getElementById("hl-ge"),
+    const layers = {
+      bu: document.getElementById("layer-bu"),
+      kou: document.getElementById("layer-kou"),
+      ge: document.getElementById("layer-ge"),
     };
 
-    const partChar = document.getElementById("partChar");
-    const partMeta = document.getElementById("partMeta");
-    const partDesc = document.getElementById("partDesc");
-    const partName = document.getElementById("partName");
-    const partHint = document.getElementById("partHint");
+    const cnBig = document.getElementById("cnBig");
+    const enMeta = document.getElementById("enMeta");
+    const desc = document.getElementById("desc");
+    const active = document.getElementById("active");
 
-    // English UI; Chinese only for the character/components themselves.
+    // English UI; only the necessary Chinese terms stay in Chinese.
     const DATA = {
-      bu: {
-        name: "Left-top component: 卜 (⺊)",
-        char: "卜",
-        meta: "Component (within 占)",
+      idle: {
+        cn: "战",
+        meta: "Hover different areas to reveal components.",
+        active: "—",
         desc:
-          "卜 (⺊) is a component often associated with divination or indication in historical forms. " +
-          "In this character family, it appears as the upper part of 占. " +
-          "Here we use it to represent the left-top structure of 战.",
-        hint: "You are pointing at the left-top area."
+          "This page introduces the structure of 战 through a minimal hover interaction. " +
+          "The character can be read as left 占 (卜/⺊ + 口) plus right 戈. " +
+          "Instead of boxing parts, the active part changes color and slightly enlarges—like ink responding to attention."
+      },
+      bu: {
+        cn: "卜",
+        meta: "Left-top component (within 占).",
+        active: "Left-top · 卜 (⺊)",
+        desc:
+          "卜/⺊ appears historically in contexts related to divination or indication. " +
+          "Here it represents the upper-left structural component of 战 (as part of 占)."
       },
       kou: {
-        name: "Left-bottom component: 口",
-        char: "口",
-        meta: "Component (within 占)",
+        cn: "口",
+        meta: "Left-bottom component (within 占).",
+        active: "Left-bottom · 口",
         desc:
-          "口 commonly relates to the mouth, speech, or a ‘mouth-shaped’ enclosure. " +
-          "In 占 it forms the lower part. " +
-          "Here we use it to represent the left-bottom structure of 战.",
-        hint: "You are pointing at the left-bottom area."
+          "口 often relates to the mouth, speech, or an enclosure-like form. " +
+          "Here it represents the lower-left component of 战 (as part of 占)."
       },
       ge: {
-        name: "Right component: 戈",
-        char: "戈",
-        meta: "Radical / weapon component",
+        cn: "戈",
+        meta: "Right component (weapon / conflict cue).",
+        active: "Right · 戈",
         desc:
-          "戈 is a historical weapon component and often signals meanings connected to conflict, force, or warfare. " +
-          "In 战, the right side is built from 戈, making it a key semantic clue.",
-        hint: "You are pointing at the right-side area."
-      },
-      whole: {
-        name: "Whole character: 战",
-        char: "战",
-        meta: "Meaning & structure (overview)",
-        desc:
-          "战 is related to battle / war. Structurally it can be read as left 占 (⺊ + 口) plus right 戈. " +
-          "This prototype uses coarse hover zones to help you ‘see’ components first—before moving to stroke-accurate mapping.",
-        hint: "Hover different areas to explore components."
+          "戈 is a weapon component and commonly signals meanings tied to conflict or force. " +
+          "In 战, it forms the right-side structure and is a key semantic clue."
       }
     };
 
-    function clearHL(){
-      Object.values(hl).forEach(el => el.classList.remove("on"));
+    function clearLayers(){
+      Object.values(layers).forEach(el => el.classList.remove("on"));
     }
 
-    function setInfo(key){
-      const d = DATA[key] || DATA.whole;
-      partChar.textContent = d.char;
-      partMeta.textContent = d.meta;
-      partDesc.textContent = d.desc;
-      partName.textContent = d.name;
-      partHint.textContent = d.hint;
+    function setState(key){
+      const d = DATA[key] || DATA.idle;
+      cnBig.textContent = d.cn;
+      enMeta.textContent = d.meta;
+      desc.textContent = d.desc;
+      active.textContent = d.active;
+
+      if(key === "idle"){
+        stage.classList.add("is-idle");
+      }else{
+        stage.classList.remove("is-idle");
+      }
     }
 
+    // Convert mouse position into svg-relative percent
     function getSvgPercent(evt){
-      const rect = svg.getBoundingClientRect();
-      const x = (evt.clientX - rect.left) / rect.width;
-      const y = (evt.clientY - rect.top) / rect.height;
+      const r = svg.getBoundingClientRect();
+      const x = (evt.clientX - r.left) / r.width;
+      const y = (evt.clientY - r.top) / r.height;
       return { x: Math.min(Math.max(x, 0), 1), y: Math.min(Math.max(y, 0), 1) };
     }
 
+    // Coarse region mapping (tune thresholds as you like)
     function regionFromPercent(p){
-      // Coarse regions (tweakable thresholds)
-      if (p.x < 0.47){
-        return (p.y < 0.52) ? "bu" : "kou";
+      // only react when roughly over the glyph area
+      const inside = (p.x > 0.19 && p.x < 0.83 && p.y > 0.16 && p.y < 0.90);
+      if(!inside) return "idle";
+
+      // left vs right
+      if(p.x < 0.49){
+        // top vs bottom
+        return (p.y < 0.53) ? "bu" : "kou";
       }
       return "ge";
     }
 
-    let lastRegion = null;
+    let last = "idle";
 
     svg.addEventListener("pointermove", (evt) => {
       const p = getSvgPercent(evt);
-      const xp = Math.round(p.x * 100);
-      const yp = Math.round(p.y * 100);
-      pos.textContent = `x: ${xp}% · y: ${yp}%`;
+      const key = regionFromPercent(p);
+      if(key === last) return;
 
-      // Only react when cursor is roughly over the character area
-      const insideGlyph = (p.x > 0.20 && p.x < 0.82 && p.y > 0.18 && p.y < 0.88);
-
-      if (!insideGlyph){
-        if (lastRegion !== "whole"){
-          clearHL();
-          setInfo("whole");
-          lastRegion = "whole";
-        }
-        return;
+      clearLayers();
+      if(key !== "idle"){
+        layers[key].classList.add("on");
       }
-
-      const r = regionFromPercent(p);
-      if (r === lastRegion) return;
-
-      clearHL();
-      hl[r].classList.add("on");
-      setInfo(r);
-      lastRegion = r;
+      setState(key);
+      last = key;
     });
 
     svg.addEventListener("pointerleave", () => {
-      clearHL();
-      setInfo("whole");
-      lastRegion = "whole";
-      pos.textContent = `x: --% · y: --%`;
+      clearLayers();
+      setState("idle");
+      last = "idle";
     });
 
-    setInfo("whole");
+    // init
+    setState("idle");
   </script>
 </body>
 </html>
