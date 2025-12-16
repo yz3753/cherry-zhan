@@ -23,10 +23,26 @@ body{
   width:min(1100px, 92vw);
   height:min(720px, 90vh);
   position:relative;
-  border-radius:32px;
-  overflow:hidden;
-  box-shadow: 0 28px 70px rgba(0,0,0,.18);
-  background: rgba(255,255,255,.16);
+
+  /* 关键：不要卡片阴影 */
+  box-shadow: none;
+
+  /* 关键：不要硬切边 */
+  border-radius: 0;
+  overflow: visible;
+
+  /* 轻微提亮中心，不是“卡片背景” */
+  background: transparent;
+
+  /* 关键：用 mask 让边缘渐隐 */
+  -webkit-mask-image: radial-gradient(closest-side,
+    rgba(0,0,0,1) 72%,
+    rgba(0,0,0,.35) 88%,
+    rgba(0,0,0,0) 100%);
+  mask-image: radial-gradient(closest-side,
+    rgba(0,0,0,1) 72%,
+    rgba(0,0,0,.35) 88%,
+    rgba(0,0,0,0) 100%);
 }
 
 /* background image */
@@ -36,8 +52,9 @@ body{
   background-image: url("./ink-war.jpg");
   background-size: cover;
   background-position: center;
-  filter: contrast(1.08) saturate(.95) brightness(.98);
+  filter: contrast(0.78) saturate(.35) brightness(.98);
   transform: scale(1.02);
+  opacity: 70%;
   z-index:0;
 }
 
