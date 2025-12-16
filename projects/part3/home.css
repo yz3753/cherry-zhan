@@ -205,3 +205,124 @@ h1{
 .footer a:hover{
   border-bottom-color: rgba(0,0,0,.48);
 }
+.megaNav{
+  position: fixed;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  z-index: 9999;
+
+  display:flex;
+  align-items:center;
+  gap: 12px;
+
+  padding: 10px 12px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,.58);
+  border: 1px solid rgba(255,255,255,.26);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 18px 44px rgba(0,0,0,.14);
+}
+
+.homeLink{
+  text-decoration:none;
+  font-weight: 750;
+  letter-spacing:.06em;
+  color: rgba(0,0,0,.82);
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.30);
+  border: 1px solid rgba(0,0,0,.08);
+  white-space: nowrap;
+}
+
+.cats{
+  display:flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items:center;
+}
+
+.cat{ position: relative; }
+
+.catBtn{
+  text-decoration:none;
+  font-size: 12px;
+  letter-spacing:.10em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.68);
+
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.30);
+  border: 1px solid rgba(0,0,0,.08);
+
+  transition: background .16s ease, border-color .16s ease, transform .16s ease;
+  white-space: nowrap;
+}
+
+.cat:hover .catBtn{
+  background: rgba(255,255,255,.72);
+  border-color: rgba(0,0,0,.16);
+  transform: translateY(-1px);
+}
+
+.drop{
+  position:absolute;
+  top: calc(100% + 10px);
+  left: 0;
+
+  min-width: 260px;
+  padding: 10px;
+  border-radius: 18px;
+
+  background: rgba(255,255,255,.70);
+  border: 1px solid rgba(0,0,0,.10);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 26px 70px rgba(0,0,0,.18);
+
+  display:flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.cat:hover .drop{
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.dropLink{
+  text-decoration:none;
+  font-family: "STLiti","LiSu","KaiTi","STKaiti","FangSong","SimSun",serif;
+  font-size: 22px;
+  line-height: 1;
+
+  color: rgba(0,0,0,.74);
+  padding: 8px 12px;
+  border-radius: 999px;
+
+  background: rgba(255,255,255,.40);
+  border: 1px solid rgba(0,0,0,.08);
+
+  transition: background .14s ease, border-color .14s ease, transform .14s ease;
+}
+
+.dropLink:hover{
+  background: rgba(255,255,255,.72);
+  border-color: rgba(0,0,0,.16);
+  transform: translateY(-1px);
+}
+
+/* push hero down so nav doesn't cover it */
+.hero{ padding-top: 110px; }
+
+@media (max-width: 740px){
+  .drop{ min-width: 220px; }
+}

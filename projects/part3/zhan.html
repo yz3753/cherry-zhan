@@ -7,11 +7,67 @@
   <link rel="stylesheet" href="./styles.css" />
 </head>
 
+
 <body data-active="">
+<nav class="megaNav" aria-label="Top navigation">
+  <a class="homeLink" href="./word.html">Home</a>
+
+  <div class="cats">
+    <!-- 1) Conflict & Force -->
+    <div class="cat">
+      <a class="catBtn" href="./index.html#conflict">Conflict &amp; Force</a>
+      <div class="drop">
+       <a class="dropLink" href="./zhan.html" aria-current="page">战</a>
+        <a class="dropLink" href="#" onclick="return false;">武</a>
+        <a class="dropLink" href="#" onclick="return false;">戒</a>
+        <a class="dropLink" href="#" onclick="return false;">戚</a>
+        <a class="dropLink" href="#" onclick="return false;">戟</a>
+      </div>
+    </div>
+
+    <!-- 2) Enclosure & Speech -->
+    <div class="cat">
+      <a class="catBtn" href="./index.html#enclosure">Enclosure &amp; Speech</a>
+      <div class="drop">
+        <a class="dropLink" href="./guo.html">国</a>
+        <a class="dropLink" href="#" onclick="return false;">回</a>
+        <a class="dropLink" href="#" onclick="return false;">因</a>
+        <a class="dropLink" href="#" onclick="return false;">问</a>
+        <a class="dropLink" href="#" onclick="return false;">器</a>
+      </div>
+    </div>
+
+    <!-- 3) Water & Flow -->
+    <div class="cat">
+      <a class="catBtn" href="./index.html#water">Water &amp; Flow</a>
+      <div class="drop">
+        <a class="dropLink" href="./hai.html">海</a>
+        <a class="dropLink" href="#" onclick="return false;">潮</a>
+        <a class="dropLink" href="#" onclick="return false;">流</a>
+        <a class="dropLink" href="#" onclick="return false;">浪</a>
+        <a class="dropLink" href="#" onclick="return false;">渗</a>
+      </div>
+    </div>
+
+    <!-- 4) Wood & Growth -->
+    <div class="cat">
+      <a class="catBtn" href="./index.html#wood">Wood &amp; Growth</a>
+      <div class="drop">
+        <a class="dropLink" href="./sen.html">森</a>
+        <a class="dropLink" href="#" onclick="return false;">林</a>
+        <a class="dropLink" href="#" onclick="return false;">植</a>
+        <a class="dropLink" href="#" onclick="return false;">构</a>
+        <a class="dropLink" href="#" onclick="return false;">桥</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
   <main class="stage" id="stage">
     <div class="bgimg" aria-hidden="true"></div>
     <canvas id="wash" aria-hidden="true"></canvas>
     <div class="paperOverlay" aria-hidden="true"></div>
+    
 
     <div class="topline" aria-hidden="true">
       <div><b>Ink Study</b> · <span lang="zh">战</span></div>
