@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ink Character · 海</title>
+  <link rel="stylesheet" href="./styles.css" />
+  <style>
+    .bgimg{ background-image: url("./ink-sea.jpg") !important; }
+  </style>
+</head>
+
+<body data-active="">
+  <main class="stage" id="stage">
+    <div class="bgimg" aria-hidden="true"></div>
+    <canvas id="wash" aria-hidden="true"></canvas>
+    <div class="paperOverlay" aria-hidden="true"></div>
+
+    <div class="topline" aria-hidden="true">
+      <div><b>Ink Study</b> · <span lang="zh">海</span></div>
+      <div>Hover regions · red highlight</div>
+    </div>
+
+    <section class="center" aria-label="Interactive character">
+      <svg id="glyph" viewBox="0 0 1000 700" role="img" aria-label="Chinese character: 海 (region-hover)">
+        <defs>
+          <filter id="inkEdge" x="-25%" y="-25%" width="150%" height="150%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="3" result="n"/>
+            <feDisplacementMap in="SourceGraphic" in2="n" scale="9" xChannelSelector="R" yChannelSelector="G"/>
+            <feGaussianBlur stdDeviation="0.35"/>
+          </filter>
+
+          <filter id="redBloom" x="-35%" y="-35%" width="170%" height="170%">
+            <feGaussianBlur stdDeviation="1.1" result="b"/>
+            <feColorMatrix in="b" type="matrix"
+              values="1 0 0 0 0
+                      0 0.25 0 0 0
+                      0 0 0.25 0 0
+                      0 0 0 0.90 0" result="tinted"/>
+            <feMerge>
+              <feMergeNode in="tinted"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <radialGradient id="redWash" cx="45%" cy="40%" r="80%">
+            <stop offset="0%" stop-color="rgba(220,30,30,.98)"/>
+            <stop offset="55%" stop-color="rgba(150,20,20,.70)"/>
+            <stop offset="100%" stop-color="rgba(80,0,0,.18)"/>
+          </radialGradient>
+
+          <!-- 海: left radical 氵 vs right component 每 (top/bottom) -->
+          <clipPath id="clip-water">
+            <rect x="200" y="150" width="240" height="470" rx="90"/>
+          </clipPath>
+
+          <clipPath id="clip-right-top">
+            <rect x="440" y="160" width="420" height="240" rx="90"/>
+          </clipPath>
+
+          <clipPath id="clip-right-bottom">
+            <rect x="440" y="390" width="420" height="260" rx="90"/>
+          </clipPath>
+        </defs>
+
+        <text id="baseChar"
+              x="500" y="560" text-anchor="middle"
+              font-family="STLiti, LiSu, KaiTi, STKaiti, FangSong, SimSun, serif"
+              font-size="560"
+              fill="rgba(10,10,10,.70)"
+              filter="url(#inkEdge)">海</text>
+
+        <g id="water" class="region" clip-path="url(#clip-water)">
+          <text x="500" y="560" text-anchor="middle"
+                font-family="STLiti, LiSu, KaiTi, STKaiti, FangSong, SimSun, serif"
+                font-size="560"
+                fill="url(#redWash)" opacity="0"
+                filter="url(#redBloom)">海</text>
+        </g>
+
+        <g id="rightTop" class="region" clip-path="url(#clip-right-top)">
+          <text x="500" y="560" text-anchor="middle"
+                font-family="STLiti, LiSu, KaiTi, STKaiti, FangSong, SimSun, serif"
+                font-size="560"
+                fill="url(#redWash)" opacity="0"
+                filter="url(#redBloom)">海</text>
+        </g>
+
+        <g id="rightBottom" class="region" clip-path="url(#clip-right-bottom)">
+          <text x="500" y="560" text-anchor="middle"
+                font-family="STLiti, LiSu, KaiTi, STKaiti, FangSong, SimSun, serif"
+                font-size="560"
+                fill="url(#redWash)" opacity="0"
+                filter="url(#redBloom)">海</text>
+        </g>
+      </svg>
+    </section>
+
+    <div class="callout" id="callout" aria-live="polite">
+      <div class="row">
+        <div class="cn" id="cn" lang="zh">海</div>
+        <div class="meta" id="meta">overview</div>
+      </div>
+      <div class="desc" id="desc">Hover different regions of the character.</div>
+    </div>
+  </main>
+
+  <script>
+    // wash animation
+    const wash = document.getElementById("wash");
+    const wctx = wash.getContext("2d", { alpha:true });
+    function resizeWash(){
+      const r = wash.getBoundingClientRect();
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      wash.width = Math.floor(r.width * dpr);
+      wash.height = Math.floor(r.height * dpr);
+      wctx.setTransform(dpr,0,0,dpr,0,0);
+    }
+    function blot(x,y,r,a){
+      const g = wctx.createRadialGradient(x,y,0,x,y,r);
+      g.addColorStop(0, `rgba(0,0,0,${a})`);
+      g.addColorStop(0.6, `rgba(0,0,0,${a*0.35})`);
+      g.addColorStop(1, `rgba(0,0,0,0)`);
+      wctx.fillStyle = g;
+      wctx.beginPath(); wctx.arc(x,y,r,0,Math.PI*2); wctx.fill();
+    }
+    let t0 = performance.now();
+    function animateWash(){
+      const t = (performance.now()-t0)/1000;
+      const r = wash.getBoundingClientRect();
+      const W = r.width, H = r.height;
+      wctx.clearRect(0,0,W,H);
+      wctx.globalCompositeOperation = "multiply";
+      for(let i=0;i<10;i++){
+        const x = (W*0.12) + (i/10)*W*0.78 + Math.sin(t*0.25+i)*16;
+        const y = H*(0.22 + 0.06*Math.sin(i*1.7)) + Math.cos(t*0.18+i*1.2)*12;
+        blot(x,y, 120 + (i%4)*16, 0.018 + (i%3)*0.006);
+      }
+      requestAnimationFrame(animateWash);
+    }
+    window.addEventListener("resize", resizeWash);
+    resizeWash(); animateWash();
+
+    // hover
+    const stage = document.getElementById("stage");
+    const callout = document.getElementById("callout");
+    const cn = document.getElementById("cn");
+    const meta = document.getElementById("meta");
+    const desc = document.getElementById("desc");
+
+    const regions = {
+      water: {
+        cn: "氵",
+        meta: "water radical",
+        desc: "氵 marks water/liquid/flow. It’s the left-side signal that the character relates to water."
+      },
+      rightTop: {
+        cn: "每 (upper)",
+        meta: "right component (upper)",
+        desc: "The right component contributes structure and rhythm; it balances the radical’s vertical flow."
+      },
+      rightBottom: {
+        cn: "每 (lower)",
+        meta: "right component (lower)",
+        desc: "Lower strokes anchor the character, like a weight under moving water—stable base beneath motion."
+      }
+    };
+
+    function positionCallout(e){
+      const s = stage.getBoundingClientRect();
+      const pad = 16;
+      const ox = (e.clientX < s.left + s.width/2) ? 22 : -22;
+      const oy = (e.clientY < s.top + s.height/2) ? 18 : -18;
+      let x = e.clientX - s.left + ox;
+      let y = e.clientY - s.top + oy;
+      const w = callout.offsetWidth || 320;
+      const h = callout.offsetHeight || 160;
+      x = Math.max(pad, Math.min(x, s.width - w - pad));
+      y = Math.max(pad + 44, Math.min(y, s.height - h - pad));
+      callout.style.left = `${x}px`;
+      callout.style.top  = `${y}px`;
+    }
+
+    function setActive(id, e){
+      document.body.dataset.active = id || "";
+      if(!id){ callout.classList.remove("on"); return; }
+      cn.textContent = regions[id].cn;
+      meta.textContent = regions[id].meta;
+      desc.textContent = regions[id].desc;
+      callout.classList.add("on");
+      positionCallout(e);
+    }
+
+    ["water","rightTop","rightBottom"].forEach(id=>{
+      const el = document.getElementById(id);
+      el.addEventListener("mouseenter", e => setActive(id, e));
+      el.addEventListener("mousemove",  e => positionCallout(e));
+      el.addEventListener("mouseleave", () => setActive("", null));
+    });
+
+    document.getElementById("glyph").addEventListener("mouseleave", () => setActive("", null));
+  </script>
+
+  <style>
+    body[data-active="water"]       #water text,
+    body[data-active="rightTop"]    #rightTop text,
+    body[data-active="rightBottom"] #rightBottom text{ opacity:1 !important; transform: scale(1.08); transform-box: fill-box; transform-origin:center; }
+    body[data-active]:not([data-active=""]) #baseChar{ opacity:.18; }
+    .region text{ transition: opacity .18s ease, transform .18s ease; }
+  </style>
+</body>
+</html>
