@@ -1,0 +1,207 @@
+:root{
+  --paper:#f7f2e7;
+  --paper2:#efe6d6;
+  --ink: rgba(0,0,0,.88);
+  --muted: rgba(0,0,0,.58);
+  --stroke: rgba(0,0,0,.10);
+  --glass: rgba(255,255,255,.62);
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  color: var(--ink);
+  background: linear-gradient(180deg, var(--paper), var(--paper2));
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial,
+               "PingFang SC","Hiragino Sans GB","Noto Sans CJK SC","Microsoft YaHei";
+}
+
+.hero{
+  padding: 72px 22px 34px;
+  display:flex;
+  justify-content:center;
+}
+
+.hero-inner{
+  width:min(980px, 92vw);
+}
+
+.kicker{
+  letter-spacing:.18em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+h1{
+  margin: 0 0 14px;
+  font-size: clamp(30px, 4vw, 46px);
+  letter-spacing: .02em;
+}
+
+.lead{
+  margin: 0 0 14px;
+  font-size: 15px;
+  line-height: 1.9;
+  color: rgba(0,0,0,.76);
+  max-width: 78ch;
+}
+
+.note{
+  margin-top: 18px;
+  display:inline-block;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.55);
+  border: 1px solid var(--stroke);
+  color: rgba(0,0,0,.62);
+  font-size: 12.5px;
+}
+
+.catalog{
+  padding: 6px 22px 80px;
+  display:flex;
+  flex-direction:column;
+  gap: 28px;
+  align-items:center;
+}
+
+.row{
+  width:min(1100px, 92vw);
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+
+.row-head{
+  display:flex;
+  flex-direction:column;
+  gap: 6px;
+}
+
+.row-head h2{
+  margin:0;
+  font-size: 16px;
+  letter-spacing:.06em;
+  text-transform: uppercase;
+  color: rgba(0,0,0,.72);
+}
+
+.row-head p{
+  margin:0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+/* horizontal rail */
+.rail{
+  display:flex;
+  gap: 12px;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding: 10px 2px 14px;
+
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+
+  /* subtle fade at edges */
+  mask-image: linear-gradient(90deg, transparent 0%, black 6%, black 94%, transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 6%, black 94%, transparent 100%);
+}
+
+.rail::-webkit-scrollbar{ height: 10px; }
+.rail::-webkit-scrollbar-thumb{
+  background: rgba(0,0,0,.15);
+  border-radius: 999px;
+}
+.rail::-webkit-scrollbar-track{
+  background: rgba(0,0,0,.04);
+  border-radius: 999px;
+}
+
+/* tiles */
+.tile{
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  width: 120px;
+  height: 120px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.55);
+  border: 1px solid var(--stroke);
+  box-shadow: 0 16px 40px rgba(0,0,0,.10);
+  display:grid;
+  place-items:center;
+  text-decoration:none;
+  position:relative;
+  transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.tile:hover{
+  transform: translateY(-3px);
+  box-shadow: 0 22px 55px rgba(0,0,0,.16);
+  background: rgba(255,255,255,.72);
+}
+
+.han{
+  font-family: "STLiti","LiSu","KaiTi","STKaiti","FangSong","SimSun",serif;
+  font-size: 64px;
+  line-height: 1;
+  color: rgba(0,0,0,.86);
+}
+
+.tile .mini{
+  position:absolute;
+  right: 12px;
+  bottom: 10px;
+  font-size: 14px;
+  color: rgba(0,0,0,.35);
+}
+
+/* featured tile for 战 */
+.tile.featured{
+  background: rgba(255,255,255,.76);
+  border-color: rgba(160,20,20,.18);
+}
+
+.tile.featured::after{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius: 22px;
+  border: 1px solid rgba(180,20,20,.25);
+  pointer-events:none;
+}
+
+.tag{
+  position:absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 11px;
+  letter-spacing:.10em;
+  text-transform: uppercase;
+  color: rgba(150,20,20,.78);
+  background: rgba(255,255,255,.75);
+  border: 1px solid rgba(150,20,20,.16);
+  padding: 6px 8px;
+  border-radius: 999px;
+}
+
+.footer{
+  width:min(1100px, 92vw);
+  margin-top: 10px;
+  color: rgba(0,0,0,.60);
+  font-size: 13px;
+}
+
+.footer a{
+  color: rgba(0,0,0,.82);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0,0,0,.22);
+}
+
+.footer a:hover{
+  border-bottom-color: rgba(0,0,0,.48);
+}

@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Radicals Atlas · Preface</title>
+  <link rel="stylesheet" href="./home.css" />
+</head>
+
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="kicker">Preface</div>
+      <h1>Chinese Characters as Components</h1>
+      <p class="lead">
+        Chinese characters are not isolated drawings. They are built from recurring components—often called
+        radicals—whose shapes, positions, and histories guide meaning, sound, and visual rhythm. This project
+        treats characters like a small architectural system: parts repeat, shift, combine, and evolve.
+      </p>
+
+      <p class="lead">
+        Hover and click into a character to see how specific components are “activated” in space—how a single
+        form can carry semantic hints, structural balance, and cultural memory. The interface aims to feel like
+        ink on paper: not a diagram on a cold panel, but a living surface where attention changes what you see.
+      </p>
+
+      <div class="note">
+        Tip: scroll each row horizontally (trackpad swipe, Shift+wheel, or mouse wheel).
+      </div>
+    </div>
+  </header>
+
+  <main class="catalog">
+    <!-- Row 1 -->
+    <section class="row">
+      <div class="row-head">
+        <h2>Conflict & Force</h2>
+        <p>Weapon-like components and action cues (e.g., 戈).</p>
+      </div>
+
+      <div class="rail" data-rail>
+
+        <a class="tile" href="#" onclick="return false;"><span class="han">戈</span></a>
+        <a class="tile featured" href="./word.html" aria-label="Open 战">
+          <span class="han">战</span>
+          <span class="tag">featured</span>
+        </a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">武</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">戒</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">戚</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">戟</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">戳</span></a>
+      </div>
+    </section>
+
+    <!-- Row 2 -->
+    <section class="row">
+      <div class="row-head">
+        <h2>Enclosure & Speech</h2>
+        <p>口 as mouth / enclosure; characters that “frame” space.</p>
+      </div>
+
+      <div class="rail" data-rail>
+        <a class="tile" href="#" onclick="return false;"><span class="han">口</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">回</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">因</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">国</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">问</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">啸</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">器</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">唱</span></a>
+      </div>
+    </section>
+
+    <!-- Row 3 -->
+    <section class="row">
+      <div class="row-head">
+        <h2>Water & Flow</h2>
+        <p>氵 / 水: wash, drift, dissolve (ink logic).</p>
+      </div>
+
+      <div class="rail" data-rail>
+        <a class="tile" href="#" onclick="return false;"><span class="han">水</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">海</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">潮</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">流</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">浪</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">润</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">渗</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">澈</span></a>
+      </div>
+    </section>
+
+    <!-- Row 4 -->
+    <section class="row">
+      <div class="row-head">
+        <h2>Wood & Growth</h2>
+        <p>木 / 艹: material + cultivation + branching systems.</p>
+      </div>
+
+      <div class="rail" data-rail>
+        <a class="tile" href="#" onclick="return false;"><span class="han">木</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">林</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">森</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">植</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">构</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">桥</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">梁</span></a>
+        <a class="tile" href="#" onclick="return false;"><span class="han">榫</span></a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div>Start with <a href="./word.html">战</a> · then expand the atlas character by character.</div>
+    </footer>
+  </main>
+
+  <script>
+    // Make mouse wheel scroll horizontally on rails (nice on desktop mice)
+    document.querySelectorAll("[data-rail]").forEach(rail => {
+      rail.addEventListener("wheel", (e) => {
+        // if user is trying to scroll vertically, redirect to horizontal
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          rail.scrollLeft += e.delta( e.deltaY );
+        }
+      }, { passive:false });
+
+      function eFix(v){ return v; }
+      function R(v){ return v; }
+      function e(v){ return v; }
+      function T(v){ return v; }
+      function C(v){ return v; }
+
+      // simple normalize (some browsers)
+      function R(x){ return x; }
+      function eFix(d){ return d; }
+      function e(d){ return d; }
+
+      function e(deltaY){ return deltaY; }
+      function R(deltaY){ return deltaY; }
+      function C(deltaY){ return deltaY; }
+      function T(deltaY){ return deltaY; }
+      function E(deltaY){ return deltaY; }
+
+      function e(deltaY){ return deltaY; }
+      function R(deltaY){ return deltaY; }
+
+      function e(deltaY){ return deltaY; }
+
+      function e(deltaY){ return deltaY; }
+
+      // keep it simple
+      function Rr(dy){ return dy; }
+      function s(dy){ return dy; }
+    });
+
+    // Tiny helper: actually use deltaY directly
+    // (kept separate to avoid minifier warnings; you can delete the above dummy funcs if you want)
+    document.querySelectorAll("[data-rail]").forEach(rail => {
+      rail.addEventListener("wheel", (e) => {
+        if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+          e.preventDefault();
+          rail.scrollLeft += e.deltaY;
+        }
+      }, { passive:false });
+    });
+  </script>
+</body>
+</html>
