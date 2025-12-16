@@ -4,378 +4,189 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ink Character · 战</title>
-  <link rel="stylesheet" href="style.css" />
+
+  <!-- 确保是同目录 -->
+  <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body>
   <main class="stage" id="stage">
-    <div class="bgimg" aria-hidden="true"></div>
-    <canvas id="wash" aria-hidden="true"></canvas>
-    <div class="paperOverlay" aria-hidden="true"></div>
+    <div class="bgimg"></div>
+    <canvas id="wash"></canvas>
+    <div class="paperOverlay"></div>
 
-    <div class="topline" aria-hidden="true">
+    <div class="topline">
       <div><b>Ink Study</b> · character <span lang="zh">战</span></div>
-      <div>Hover strokes · red highlight · others wash out</div>
+      <div>Hover regions</div>
     </div>
 
-    <section class="center" aria-label="Interactive character">
-      <!--
-        Brush-style SVG strokes (each is a path = true hover hit-test)
-        Components mapping:
-          - left 占 : strokes tagged as data-part="卜/⺊" or "口"
-          - right 戈 : strokes tagged as data-part="戈"
-      -->
-      <svg id="glyph" viewBox="0 0 1000 700" role="img" aria-label="Chinese character: 战 (stroke-hover)">
+    <section class="center">
+      <svg id="glyph" viewBox="0 0 1000 700" aria-label="Chinese character 战">
         <defs>
-          <!-- Paper-aware brush edge -->
-          <filter id="brushEdge" x="-25%" y="-25%" width="150%" height="150%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="9" result="noise"/>
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="10" xChannelSelector="R" yChannelSelector="G"/>
-            <feGaussianBlur stdDeviation="0.35" />
+          <!-- 轻微水墨边缘 -->
+          <filter id="inkEdge" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015" numOctaves="2" seed="3"/>
+            <feDisplacementMap in="SourceGraphic" scale="8"/>
+            <feGaussianBlur stdDeviation="0.4"/>
           </filter>
 
-          <!-- Red bloom (strong highlight) -->
-          <filter id="redBloom" x="-35%" y="-35%" width="170%" height="170%">
-            <feGaussianBlur stdDeviation="1.1" result="b"/>
-            <feColorMatrix in="b" type="matrix"
-              values="1 0 0 0 0
-                      0 0.25 0 0 0
-                      0 0 0.25 0 0
-                      0 0 0 0.90 0" result="tinted"/>
-            <feMerge>
-              <feMergeNode in="tinted"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-
-          <!-- Highlight ink wash gradient -->
-          <radialGradient id="redWash" cx="45%" cy="40%" r="85%">
-            <stop offset="0%" stop-color="rgba(220,35,35,.98)"/>
-            <stop offset="58%" stop-color="rgba(140,18,18,.72)"/>
-            <stop offset="100%" stop-color="rgba(80,0,0,.18)"/>
+          <!-- 红色水墨 -->
+          <radialGradient id="redWash" cx="45%" cy="40%" r="80%">
+            <stop offset="0%" stop-color="rgba(220,30,30,.95)"/>
+            <stop offset="55%" stop-color="rgba(150,20,20,.70)"/>
+            <stop offset="100%" stop-color="rgba(80,0,0,.20)"/>
           </radialGradient>
 
-          <!-- Fade wash for non-highlight strokes (transparent gradient) -->
-          <linearGradient id="fadeInk" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="rgba(10,10,10,.18)"/>
-            <stop offset="55%" stop-color="rgba(10,10,10,.10)"/>
-            <stop offset="100%" stop-color="rgba(10,10,10,0)"/>
-          </linearGradient>
+          <!-- 区域裁剪 -->
+          <clipPath id="clip-left-top">
+            <rect x="250" y="120" width="260" height="240" rx="40"/>
+          </clipPath>
+
+          <clipPath id="clip-left-bottom">
+            <rect x="250" y="360" width="260" height="260" rx="40"/>
+          </clipPath>
+
+          <clipPath id="clip-right">
+            <rect x="510" y="140" width="300" height="460" rx="40"/>
+          </clipPath>
         </defs>
 
-        <!-- Group of strokes -->
-        <g id="strokes" filter="url(#brushEdge)">
-          <!-- Left: 占 (approx strokes) -->
-          <!-- Stroke 1: ⺊ dot -->
-          <path class="stroke" data-stroke="1" data-part="卜/⺊" data-label="⺊ (top-left)"
-            d="M300,155
-               C290,170 288,190 303,205
-               C320,222 345,212 348,192
-               C351,172 332,150 314,148
-               C307,147 303,150 300,155Z"/>
+        <!-- 基础字（整体，淡） -->
+        <text x="500" y="560"
+              text-anchor="middle"
+              class="char base"
+              filter="url(#inkEdge)">
+          战
+        </text>
 
-          <!-- Stroke 2: ⺊ vertical -->
-          <path class="stroke" data-stroke="2" data-part="卜/⺊" data-label="⺊ (vertical)"
-            d="M345,180
-               C336,205 338,232 340,260
-               C342,288 338,330 352,350
-               C368,372 395,360 392,334
-               C388,300 380,250 377,214
-               C375,190 356,168 345,180Z"/>
+        <!-- 左上：卜 / ⺊ -->
+        <g id="bu" clip-path="url(#clip-left-top)">
+          <text x="500" y="560"
+                text-anchor="middle"
+                class="char highlight"
+                filter="url(#inkEdge)">
+            战
+          </text>
+        </g>
 
-          <!-- Stroke 3: ⺊ slant/edge -->
-          <path class="stroke" data-stroke="3" data-part="卜/⺊" data-label="⺊ (edge)"
-            d="M392,250
-               C412,240 435,238 455,250
-               C475,262 474,284 456,292
-               C438,300 410,304 392,295
-               C372,285 374,257 392,250Z"/>
+        <!-- 左下：口 -->
+        <g id="kou" clip-path="url(#clip-left-bottom)">
+          <text x="500" y="560"
+                text-anchor="middle"
+                class="char highlight"
+                filter="url(#inkEdge)">
+            战
+          </text>
+        </g>
 
-          <!-- 口 top -->
-          <path class="stroke" data-stroke="4" data-part="口" data-label="口 (top)"
-            d="M290,380
-               C335,350 415,350 460,380
-               C475,390 470,410 452,412
-               C410,418 340,418 298,412
-               C278,410 272,392 290,380Z"/>
-
-          <!-- 口 left -->
-          <path class="stroke" data-stroke="5" data-part="口" data-label="口 (left)"
-            d="M288,400
-               C275,438 276,495 290,545
-               C297,570 330,566 327,538
-               C322,495 320,448 330,412
-               C336,390 296,382 288,400Z"/>
-
-          <!-- 口 bottom -->
-          <path class="stroke" data-stroke="6" data-part="口" data-label="口 (bottom)"
-            d="M300,540
-               C340,575 420,575 460,540
-               C476,526 470,507 452,505
-               C410,500 340,500 298,505
-               C278,507 272,526 300,540Z"/>
-
-          <!-- 口 right -->
-          <path class="stroke" data-stroke="7" data-part="口" data-label="口 (right)"
-            d="M456,400
-               C470,438 469,495 456,545
-               C448,572 417,565 420,538
-               C425,495 426,448 416,412
-               C410,390 450,382 456,400Z"/>
-
-          <!-- Right: 戈 (approx strokes) -->
-          <!-- 戈 main vertical -->
-          <path class="stroke" data-stroke="8" data-part="戈" data-label="戈 (main)"
-            d="M650,150
-               C630,175 628,215 632,255
-               C636,300 628,360 648,392
-               C672,430 712,410 706,370
-               C700,328 694,270 692,228
-               C690,188 670,140 650,150Z"/>
-
-          <!-- 戈 horizontal / hook -->
-          <path class="stroke" data-stroke="9" data-part="戈" data-label="戈 (hook)"
-            d="M585,285
-               C630,260 700,260 745,285
-               C768,298 760,320 738,324
-               C690,332 640,332 592,324
-               C570,320 560,300 585,285Z"/>
-
-          <!-- 戈 slash -->
-          <path class="stroke" data-stroke="10" data-part="戈" data-label="戈 (slash)"
-            d="M600,360
-               C620,352 645,360 660,382
-               C690,430 720,480 750,528
-               C765,552 748,575 724,562
-               C675,535 640,490 615,440
-               C600,410 580,372 600,360Z"/>
-
-          <!-- 戈 dot -->
-          <path class="stroke" data-stroke="11" data-part="戈" data-label="戈 (dot)"
-            d="M740,210
-               C730,225 728,245 742,258
-               C758,272 784,262 786,242
-               C788,222 770,202 752,202
-               C747,202 743,205 740,210Z"/>
-
-          <!-- Extra “battle energy” stroke (stylized) -->
-          <path class="stroke" data-stroke="12" data-part="戈" data-label="戈 (tail)"
-            d="M690,430
-               C675,470 665,520 675,565
-               C682,595 720,595 720,560
-               C720,515 730,480 742,448
-               C752,422 700,408 690,430Z"/>
+        <!-- 右：戈 -->
+        <g id="ge" clip-path="url(#clip-right)">
+          <text x="500" y="560"
+                text-anchor="middle"
+                class="char highlight"
+                filter="url(#inkEdge)">
+            战
+          </text>
         </g>
       </svg>
     </section>
 
-    <!-- Mouse-following callout -->
-    <div class="callout" id="callout" aria-live="polite">
+    <!-- 浮动解释 -->
+    <div class="callout" id="callout">
       <div class="row">
-        <div class="cn" id="cn" lang="zh">战</div>
+        <div class="cn" id="cn">战</div>
         <div class="meta" id="meta">overview</div>
       </div>
       <div class="desc" id="desc">
-        Hover strokes to reveal parts. Chinese appears only for the character/parts.
+        Hover different regions of the character.
       </div>
     </div>
   </main>
 
   <script>
-    // -----------------------------
-    // Background wash animation (subtle)
-    // -----------------------------
-    const wash = document.getElementById("wash");
-    const wctx = wash.getContext("2d", { alpha:true });
-
-    function resizeWash(){
-      const r = wash.getBoundingClientRect();
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      wash.width = Math.floor(r.width * dpr);
-      wash.height = Math.floor(r.height * dpr);
-      wctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    }
-
-    function hash2(x,y){
-      let n = x*374761393 + y*668265263;
-      n = (n ^ (n>>13)) * 1274126177;
-      return ((n ^ (n>>16))>>>0) / 4294967295;
-    }
-    const lerp = (a,b,t)=>a+(b-a)*t;
-    const smooth = t=>t*t*(3-2*t);
-    function noise(x,y){
-      const x0=Math.floor(x), y0=Math.floor(y);
-      const xf=x-x0, yf=y-y0;
-      const r00=hash2(x0,y0), r10=hash2(x0+1,y0), r01=hash2(x0,y0+1), r11=hash2(x0+1,y0+1);
-      const u=smooth(xf), v=smooth(yf);
-      return lerp(lerp(r00,r10,u), lerp(r01,r11,u), v);
-    }
-    function fbm(x,y){
-      let s=0, a=0.55, f=0.010;
-      for(let i=0;i<4;i++){
-        s += a*noise(x*f, y*f);
-        f *= 2.05; a *= 0.55;
+    const regions = {
+      bu: {
+        cn: "卜",
+        meta: "left-top component (within 占)",
+        desc: "卜 / ⺊ forms the upper-left structure of 战 as part of 占."
+      },
+      kou: {
+        cn: "口",
+        meta: "left-bottom component (within 占)",
+        desc: "口 forms the lower-left structure of 战 as part of 占."
+      },
+      ge: {
+        cn: "戈",
+        meta: "right component",
+        desc: "戈 is a weapon component and provides the semantic cue of conflict."
       }
-      return s;
-    }
-
-    function blot(x,y,r,a){
-      const g = wctx.createRadialGradient(x,y,0,x,y,r);
-      g.addColorStop(0, `rgba(0,0,0,${a})`);
-      g.addColorStop(0.6, `rgba(0,0,0,${a*0.35})`);
-      g.addColorStop(1, `rgba(0,0,0,0)`);
-      wctx.fillStyle = g;
-      wctx.beginPath();
-      wctx.arc(x,y,r,0,Math.PI*2);
-      wctx.fill();
-    }
-
-    let t0 = performance.now();
-    function animateWash(){
-      const t = (performance.now()-t0)/1000;
-      const r = wash.getBoundingClientRect();
-      const W = r.width, H = r.height;
-
-      wctx.clearRect(0,0,W,H);
-      wctx.globalCompositeOperation = "multiply";
-
-      // soft drifting clouds
-      for(let i=0;i<12;i++){
-        const x = (W*0.12) + (i/12)*W*0.78 + Math.sin(t*0.25+i)*18;
-        const y = H*(0.22 + 0.06*Math.sin(i*1.7)) + Math.cos(t*0.18+i*1.2)*14;
-        blot(x,y, 120 + (i%4)*18, 0.018 + (i%3)*0.006);
-      }
-
-      // subtle grain
-      const step = 24;
-      for(let y=0;y<H;y+=step){
-        for(let x=0;x<W;x+=step){
-          const n = fbm(x+t*22, y+t*14);
-          const a = (n-0.42)*0.05;
-          if(a>0){
-            wctx.fillStyle = `rgba(0,0,0,${a})`;
-            wctx.fillRect(x,y,step,step);
-          }
-        }
-      }
-
-      requestAnimationFrame(animateWash);
-    }
-
-    window.addEventListener("resize", resizeWash);
-    resizeWash();
-    animateWash();
-
-    // -----------------------------
-    // Stroke-precise hover interaction
-    // -----------------------------
-    const stage = document.getElementById("stage");
-    const glyph = document.getElementById("glyph");
-    const strokes = Array.from(document.querySelectorAll(".stroke"));
+    };
 
     const callout = document.getElementById("callout");
     const cn = document.getElementById("cn");
     const meta = document.getElementById("meta");
     const desc = document.getElementById("desc");
+    const stage = document.getElementById("stage");
 
-    const DATA = {
-      idle: {
-        cn: "战",
-        meta: "overview",
-        desc:
-          "Hover any stroke to reveal the component. Highlight turns red; all other strokes wash out into transparency. " +
-          "Chinese appears only for the character/parts."
-      },
-      "卜/⺊": {
-        cn: "卜",
-        meta: "component (within 占)",
-        desc:
-          "卜/⺊ appears historically in contexts related to divination or indication. Here it marks the upper-left structure of 战 (within 占)."
-      },
-      "口": {
-        cn: "口",
-        meta: "component (within 占)",
-        desc:
-          "口 often relates to mouth/speech or an enclosure-like form. Here it marks the lower-left structure of 战 (within 占)."
-      },
-      "戈": {
-        cn: "戈",
-        meta: "weapon / conflict cue",
-        desc:
-          "戈 is a weapon component and often signals conflict or force. In 战 it forms the right-side structure."
-      }
-    };
+    function moveCallout(e){
+      const r = stage.getBoundingClientRect();
+      callout.style.left = `${e.clientX - r.left + 20}px`;
+      callout.style.top  = `${e.clientY - r.top  + 20}px`;
+    }
 
-    function setCallout(part, label){
-      if(!part){
-        cn.textContent = DATA.idle.cn;
-        meta.textContent = DATA.idle.meta;
-        desc.textContent = DATA.idle.desc;
+    Object.keys(regions).forEach(id => {
+      const el = document.getElementById(id);
+
+      el.addEventListener("mouseenter", e => {
+        document.body.dataset.active = id;
+        cn.textContent = regions[id].cn;
+        meta.textContent = regions[id].meta;
+        desc.textContent = regions[id].desc;
+        callout.classList.add("on");
+      });
+
+      el.addEventListener("mousemove", moveCallout);
+
+      el.addEventListener("mouseleave", () => {
+        document.body.dataset.active = "";
         callout.classList.remove("on");
-        return;
-      }
-      const d = DATA[part] || DATA.idle;
-      cn.textContent = d.cn;
-      meta.textContent = (label ? `${d.meta} · ${label}` : d.meta);
-      desc.textContent = d.desc;
-      callout.classList.add("on");
-    }
-
-    function positionCallout(evt){
-      const s = stage.getBoundingClientRect();
-      const pad = 16;
-
-      const offsetX = (evt.clientX < s.left + s.width/2) ? 22 : -22;
-      const offsetY = (evt.clientY < s.top + s.height/2) ? 18 : -18;
-
-      let x = evt.clientX - s.left + offsetX;
-      let y = evt.clientY - s.top + offsetY;
-
-      const w = callout.offsetWidth || 320;
-      const h = callout.offsetHeight || 160;
-
-      x = Math.max(pad, Math.min(x, s.width - w - pad));
-      y = Math.max(pad + 44, Math.min(y, s.height - h - pad));
-      callout.style.left = `${x}px`;
-      callout.style.top  = `${y}px`;
-    }
-
-    function setActiveStroke(activeEl){
-      strokes.forEach(p => {
-        p.classList.remove("active");
-        p.classList.toggle("washed", !!activeEl);
-      });
-      if(activeEl){
-        activeEl.classList.add("active");
-      }
-    }
-
-    // Event binding (true path hit-testing)
-    strokes.forEach(p => {
-      p.addEventListener("pointerenter", (evt) => {
-        const part = p.dataset.part;
-        const label = p.dataset.label || `stroke ${p.dataset.stroke}`;
-        setActiveStroke(p);
-        setCallout(part, label);
-      });
-      p.addEventListener("pointermove", (evt) => {
-        positionCallout(evt);
-      });
-      p.addEventListener("pointerleave", (evt) => {
-        // revert to idle only if leaving the whole SVG or no other stroke is active
-        setActiveStroke(null);
-        setCallout(null);
       });
     });
-
-    // Also handle pointer leave from SVG
-    glyph.addEventListener("pointerleave", () => {
-      setActiveStroke(null);
-      setCallout(null);
-    });
-
-    // Init
-    setCallout(null);
   </script>
 </body>
 </html>
+四、你 CSS 里需要 确认有这几条
+在你的 styles.css 里，确保有（或加上）👇
+
+css
+复制代码
+.char{
+  font-family: "LiSu","STLiti","KaiTi","STKaiti","FangSong","SimSun",serif;
+  font-size: 560px;
+  transition: opacity .2s ease, transform .2s ease, fill .2s ease;
+}
+
+/* 默认淡墨 */
+.char.base{
+  fill: rgba(10,10,10,.65);
+}
+
+/* 高光层默认隐藏 */
+.char.highlight{
+  fill: url(#redWash);
+  opacity: 0;
+  transform: scale(1);
+}
+
+/* hover 状态 */
+body[data-active="bu"] #bu .highlight,
+body[data-active="kou"] #kou .highlight,
+body[data-active="ge"] #ge .highlight{
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+/* 非高光区域洗淡 */
+body[data-active]:not([data-active=""]) .base{
+  opacity: .18;
+}
